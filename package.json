@@ -1,0 +1,13 @@
+{
+  "name": "columbus-js",
+  "version": "0.0.1",
+  "description": "Generate and submit sitemap.xml and robot.txt to search engines with single trigger or command.",
+  "main": "index.js",
+  "repository": "https://github.com/cresteem/Columbus-JS.git",
+  "author": "DARSAN <iamspdarsan@gmail.com>",
+  "license": "Apache-2.0",
+  "private": false,
+  "dependencies": {
+    "luxon": "^3.4.4"
+  }
+}
