@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "CommonJS",
+		"moduleResolution": "Node10",
+		"baseUrl": ".",
+		"rootDir": ".",
+		"outDir": "dist",
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noFallthroughCasesInSwitch": true,
+		"strict": true,
+		"strictBindCallApply": true,
+		"strictNullChecks": true,
+		"alwaysStrict": true,
+		"strictFunctionTypes": true,
+		"allowUmdGlobalAccess": true,
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"preserveConstEnums": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"pretty": false,
+		"noUnusedLocals": false,
+		"noImplicitOverride": false,
+		"noUnusedParameters": true,
+		"noUncheckedIndexedAccess": false,
+		"sourceMap": false,
+		"removeComments": true
+	},
+	"exclude": [
+		"node_modules"
+	]
+}

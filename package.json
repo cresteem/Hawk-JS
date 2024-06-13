@@ -1,13 +1,66 @@
 {
-  "name": "columbus-js",
-  "version": "0.0.1",
-  "description": "Generate and submit sitemap.xml and robot.txt to search engines with single trigger or command.",
-  "main": "index.js",
-  "repository": "https://github.com/cresteem/Columbus-JS.git",
-  "author": "DARSAN <iamspdarsan@gmail.com>",
-  "license": "Apache-2.0",
-  "private": false,
-  "dependencies": {
-    "luxon": "^3.4.4"
-  }
+	"name": "@cresteem/columbus-js",
+	"displayName": "Columbus JS",
+	"version": "0.0.1",
+	"description": "Generate and submit sitemap.xml and robot.txt to search engines with single trigger or command.",
+	"main": "./dist/columbus.js",
+	"exports": {
+		"import": "./not-added",
+		"require": "./not-added",
+		"types": "./not-added"
+	},
+	"engines": {
+		"node": ">=21.7.3",
+		"npm": ">=10.5.0"
+	},
+	"preferGlobal": true,
+	"bin": {
+		"columbus": "not-added"
+	},
+	"repository": "https://github.com/cresteem/Columbus-JS.git",
+	"bugs": {
+		"url": "https://github.com/cresteem/Columbus-JS/issues"
+	},
+	"homepage": "not-added",
+	"author": "CRESTEEM <connect@cresteem.com>",
+	"maintainers": [
+		"CRESTEEM <connect@cresteem.com>",
+		"DARSAN <darsan@cresteem.com>"
+	],
+	"license": "Apache-2.0",
+	"private": false,
+	"scripts": {
+		"dev": "rimraf dist && tsc -p tscdev.json",
+		"dr": "cls && yarn dev && node ./dist/columbus.js",
+		"rp": "node ./dist/columbus.js",
+		"test": "jest",
+		"build": "cls && rimraf dist && tsc -p tsconfig.json && ncp ./columbus.config.json ./dist/columbus.config.json",
+		"watch": "tsc --watch",
+		"clean": "cls && rimraf dist",
+		"deploy": "yarn build && yarn publish --access public && git push"
+	},
+	"keywords": [
+		"not-added"
+	],
+	"dependencies": {
+		"luxon": "3.4.4",
+		"prettier": "3.2.5",
+		"@prettier/sync": "0.5.1",
+		"glob": "10.3.15",
+		"yargs": "17.7.2"
+	},
+	"devDependencies": {
+		"@babel/core": "7.24.5",
+		"@babel/preset-env": "7.24.5",
+		"@babel/preset-typescript": "7.24.1",
+		"@types/jest": "29.5.12",
+		"@types/luxon": "3.4.2",
+		"@typescript-eslint/eslint-plugin": "7.7.0",
+		"babel-jest": "29.7.0",
+		"jest": "29.7.0",
+		"ncp": "2.0.0",
+		"rimraf": "5.0.5",
+		"ts-node": "10.9.2",
+		"typescript": "5.4.5"
+	}
 }
