@@ -1,8 +1,0 @@
-{
-	"rootDir": "./",
-	"ignorePattern": [
-		"node_modules"
-	],
-	"timeZone": "Asia/Kolkata",
-	"domainName": "www.example.com"
-}

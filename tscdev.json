@@ -31,6 +31,8 @@
 		"removeComments": true
 	},
 	"exclude": [
-		"node_modules"
+		"node_modules",
+		"test",
+		"jest.config.ts"
 	]
 }

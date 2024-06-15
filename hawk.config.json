@@ -1,0 +1,17 @@
+{
+	"lookupPatterns": [
+		"**/*.html",
+		"**/*.htm"
+	],
+	"ignorePattern": [
+		"node_modules/**"
+	],
+	"timeZone": "Asia/Kolkata",
+	"domainName": "www.example.com",
+	"sitemapPath": "sitemap.xml",
+	"robotPath": "robot.txt",
+	"fallbacks": {
+		"changeFrequency": "daily",
+		"priority": "1.0"
+	}
+}

@@ -1,13 +1,13 @@
 {
-	"name": "@cresteem/columbus-js",
-	"displayName": "Columbus JS",
-	"version": "0.0.1",
-	"description": "Generate and submit sitemap.xml and robot.txt to search engines with single trigger or command.",
-	"main": "./dist/columbus.js",
+	"name": "@cresteem/hawk-js",
+	"displayName": "Hawk JS",
+	"version": "0.0.1a",
+	"description": "Hawk JS: Generate and submit sitemap.xml and robot.txt to search engines with a command.",
+	"main": "./dist/hawk.js",
 	"exports": {
-		"import": "./not-added",
-		"require": "./not-added",
-		"types": "./not-added"
+		"import": "./dist/hawk.js",
+		"require": "./dist/hawk.js",
+		"types": "./dist/types/hawk.d.ts"
 	},
 	"engines": {
 		"node": ">=21.7.3",
@@ -15,11 +15,11 @@
 	},
 	"preferGlobal": true,
 	"bin": {
-		"columbus": "not-added"
+		"hawk": "./dist/bin/CLIDriver.js"
 	},
-	"repository": "https://github.com/cresteem/Columbus-JS.git",
+	"repository": "https://github.com/cresteem/Hawk-JS",
 	"bugs": {
-		"url": "https://github.com/cresteem/Columbus-JS/issues"
+		"url": "https://github.com/cresteem/Hawk-JS/issues"
 	},
 	"homepage": "not-added",
 	"author": "CRESTEEM <connect@cresteem.com>",
@@ -30,23 +30,28 @@
 	"license": "Apache-2.0",
 	"private": false,
 	"scripts": {
-		"dev": "rimraf dist && tsc -p tscdev.json",
-		"dr": "cls && yarn dev && node ./dist/columbus.js",
-		"rp": "node ./dist/columbus.js",
+		"dev": "rimraf dist && tsc -p tscdev.json && ncp ./hawk.config.json ./dist/hawk.config.json",
+		"dr": "cls && yarn dev && yarn rp",
+		"rp": "node ./dist/hawk.js",
 		"test": "jest",
-		"build": "cls && rimraf dist && tsc -p tsconfig.json && ncp ./columbus.config.json ./dist/columbus.config.json",
+		"build": "cls && rimraf dist && tsc -p tsconfig.json && ncp ./hawk.config.json ./dist/hawk.config.json",
 		"watch": "tsc --watch",
 		"clean": "cls && rimraf dist",
 		"deploy": "yarn build && yarn publish --access public && git push"
 	},
 	"keywords": [
-		"not-added"
+		"Sitemap",
+		"Generator",
+		"Robot",
+		"SEO",
+		"Search",
+		"Engine",
+		"Optimization"
 	],
 	"dependencies": {
-		"luxon": "3.4.4",
-		"prettier": "3.2.5",
-		"@prettier/sync": "0.5.1",
 		"glob": "10.3.15",
+		"jstoxml": "5.0.1",
+		"luxon": "3.4.4",
 		"yargs": "17.7.2"
 	},
 	"devDependencies": {
@@ -54,9 +59,13 @@
 		"@babel/preset-env": "7.24.5",
 		"@babel/preset-typescript": "7.24.1",
 		"@types/jest": "29.5.12",
+		"@types/jstoxml": "2.0.4",
 		"@types/luxon": "3.4.2",
 		"@typescript-eslint/eslint-plugin": "7.7.0",
+		"@typescript-eslint/parser": "^7.13.0",
 		"babel-jest": "29.7.0",
+		"eslint": "^9.5.0",
+		"fast-xml-parser": "4.4.0",
 		"jest": "29.7.0",
 		"ncp": "2.0.0",
 		"rimraf": "5.0.5",
