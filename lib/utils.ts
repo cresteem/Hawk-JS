@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "fs";
 import { globSync } from "glob";
 import { toXML as XMLBuilder } from "jstoxml";
 import { DateTime } from "luxon";
-import { basename, dirname, join, relative } from "path";
+import { basename, relative } from "path";
 import configurations from "../configLoader";
 import { RouteMetaOptions } from "./options";
 
@@ -68,8 +68,6 @@ function _getRoutesMeta(): RouteMetaOptions[] {
 		routesMeta.push({
 			route: route,
 			modifiedTime: _getModtime(filePath) ?? "null",
-			changeFrequency: configurations.fallbacks.changeFrequency,
-			priority: configurations.fallbacks.priority,
 		});
 	});
 
@@ -86,8 +84,6 @@ function _buildUrlObjects(
 			url: {
 				loc: routeMeta.route,
 				lastmod: routeMeta.modifiedTime,
-				changefreq: routeMeta.changeFrequency,
-				priority: routeMeta.priority,
 			},
 		};
 		urlElements.push(urlElement);
