@@ -25,7 +25,7 @@
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"pretty": false,
-		"noUnusedLocals": false,
+		"noUnusedLocals": true,
 		"noImplicitOverride": false,
 		"noUnusedParameters": true,
 		"noUncheckedIndexedAccess": false,

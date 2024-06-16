@@ -28,48 +28,53 @@ function _getModtime(filePath: string): string | null {
 	return ISOTime;
 }
 
-function _getRoutesMeta(): RouteMetaOptions[] {
+export function getRoutesMeta(
+	lookupPatterns: string[] = [],
+	ignorePattern: string[] = [],
+): RouteMetaOptions[] {
 	const routesMeta: RouteMetaOptions[] = [] as RouteMetaOptions[];
 
-	_lookupFiles().forEach((filePath: string): void => {
-		let relativePath: string = relative(process.cwd(), filePath);
+	_lookupFiles(lookupPatterns, ignorePattern).forEach(
+		(filePath: string): void => {
+			let relativePath: string = relative(process.cwd(), filePath);
 
-		/* Make web standard path: */
+			/* Make web standard path: */
 
-		const pageExtension: string =
-			"." + basename(relativePath).split(".").at(-1) ?? "";
+			const pageExtension: string =
+				"." + basename(relativePath).split(".").at(-1) ?? "";
 
-		let standardPath: string;
+			let standardPath: string;
 
-		//remove file extension
-		if (pageExtension) {
-			standardPath = relativePath.slice(0, -pageExtension.length);
-		} else {
-			standardPath = relativePath;
-		}
-
-		//Keep standard forward slash in url
-		standardPath = standardPath.replace(/\\/g, "/");
-
-		//replace /index as / (slash)
-		const isRootIndex: boolean = standardPath === "index";
-		const isNonRootIndex: boolean = standardPath.endsWith("/index");
-
-		if (isRootIndex || isNonRootIndex) {
-			if (isNonRootIndex) {
-				standardPath = standardPath.slice(0, -6);
+			//remove file extension
+			if (pageExtension) {
+				standardPath = relativePath.slice(0, -pageExtension.length);
 			} else {
-				standardPath = "";
+				standardPath = relativePath;
 			}
-		}
 
-		const route: string = `https://${configurations.domainName}/${standardPath}`;
+			//Keep standard forward slash in url
+			standardPath = standardPath.replace(/\\/g, "/");
 
-		routesMeta.push({
-			route: route,
-			modifiedTime: _getModtime(filePath) ?? "null",
-		});
-	});
+			//replace /index as / (slash)
+			const isRootIndex: boolean = standardPath === "index";
+			const isNonRootIndex: boolean = standardPath.endsWith("/index");
+
+			if (isRootIndex || isNonRootIndex) {
+				if (isNonRootIndex) {
+					standardPath = standardPath.slice(0, -6);
+				} else {
+					standardPath = "";
+				}
+			}
+
+			const route: string = `https://${configurations.domainName}/${standardPath}`;
+
+			routesMeta.push({
+				route: route,
+				modifiedTime: _getModtime(filePath) ?? "null",
+			});
+		},
+	);
 
 	return routesMeta;
 }
@@ -102,7 +107,7 @@ export function makeSitemap(prettify: boolean = true): string {
 				"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd",
 			xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		},
-		_content: _buildUrlObjects(_getRoutesMeta()),
+		_content: _buildUrlObjects(getRoutesMeta()),
 	};
 
 	/* Build sitemap xml */
@@ -114,7 +119,7 @@ export function makeSitemap(prettify: boolean = true): string {
 	/* write sitemap.xml */
 	try {
 		writeFileSync(configurations.sitemapPath, siteMapXML);
-		return "Sitemap created successfully";
+		return "Sitemap created";
 	} catch (err) {
 		console.log("Error while writing sitemap.xml", err);
 		process.exit(1);
@@ -158,7 +163,7 @@ export function makeRobot(): string {
 
 			try {
 				writeFileSync(configurations.robotPath, newRobotContent);
-				return `Sitemap link updated in existing robot.txt`;
+				return `link updated in existing robot.txt`;
 			} catch (err) {
 				console.log("Error updating sitemap in existing robots.txt:", err);
 				process.exit(1);
@@ -169,7 +174,7 @@ export function makeRobot(): string {
 			/* Adding site map to robot.txt */
 			try {
 				writeFileSync(configurations.robotPath, newRobotContent);
-				return `Sitemap link added in existing robot.txt`;
+				return `link added in existing robot.txt`;
 			} catch (err) {
 				console.log("Error adding sitemap in existing robots.txt:", err);
 				process.exit(1);
@@ -181,7 +186,7 @@ export function makeRobot(): string {
 		/* Creating robot.txt and adding sitemap link into it */
 		try {
 			writeFileSync(configurations.robotPath, robotContent);
-			return "robot.txt created and sitemap link added into it";
+			return "robot.txt created and link added into it";
 		} catch (err) {
 			console.log("Error while creating robot.txt");
 			process.exit(1);

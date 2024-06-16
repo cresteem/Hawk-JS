@@ -49,6 +49,7 @@
 		"Optimization"
 	],
 	"dependencies": {
+		"basic-ftp": "^5.0.5",
 		"glob": "10.3.15",
 		"jstoxml": "5.0.1",
 		"luxon": "3.4.4",
