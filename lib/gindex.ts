@@ -1,12 +1,22 @@
-import { request } from "https";
 import { google } from "googleapis";
-import key from "../gserv.json";
+import { request } from "https";
+
 import {
+	constants,
 	googleIndexResponseOptions,
 	googleIndexStatusCode,
+	sitemapMetaOptions,
 } from "./options";
 
-function _callAPI(
+import config from "../configLoader";
+import {
+	convertTimeinCTZone,
+	lastStateReader,
+	lastStateWriter,
+} from "./utils";
+const { domainName, sitemapPath } = config;
+
+function _callIndexingAPI(
 	accessToken: string,
 	updatedRoute: string,
 ): Promise<googleIndexResponseOptions> {
@@ -53,13 +63,10 @@ function _callAPI(
 export async function googleIndex(stateChangedRoutes: string[]) {
 	const callPromises: Promise<googleIndexResponseOptions>[] = [];
 
-	const jwtClient = new google.auth.JWT(
-		key.client_email,
-		undefined,
-		key.private_key,
-		["https://www.googleapis.com/auth/indexing"],
-		undefined,
-	);
+	const jwtClient = new google.auth.JWT({
+		keyFile: constants.serviceAccountFile,
+		scopes: ["https://www.googleapis.com/auth/indexing"],
+	});
 
 	jwtClient.authorize(async (err, tokens): Promise<void> => {
 		if (err) {
@@ -72,7 +79,7 @@ export async function googleIndex(stateChangedRoutes: string[]) {
 		stateChangedRoutes.forEach((updatedRoute) => {
 			callPromises.push(
 				(() => {
-					return _callAPI(accessToken, updatedRoute);
+					return _callIndexingAPI(accessToken, updatedRoute);
 				})(),
 			);
 		});
@@ -86,6 +93,7 @@ export async function googleIndex(stateChangedRoutes: string[]) {
 			googleIndexStatusCode,
 			googleIndexResponseOptions[]
 		> = {
+			204: [], //dummy
 			400: [],
 			403: [],
 			429: [],
@@ -154,5 +162,162 @@ export async function googleIndex(stateChangedRoutes: string[]) {
 				});
 			}
 		}
+	});
+}
+
+function _sitemapGAPIResponseHandler(
+	response: googleIndexResponseOptions,
+) {
+	switch (response.statusCode) {
+		case 200:
+		case 204:
+			console.log("\n✅ Sitemap submitted");
+			console.log("Submitted link: ", response.url);
+			break;
+		case 403:
+			console.log(
+				"\n🚫 Forbidden | Reason: ",
+				response.body.error.message,
+			);
+			console.log("Failed link: ", response.url);
+			break;
+		default:
+			console.log("\nUnexpected response");
+			console.log("Status code: ", response.statusCode);
+			console.log("Error message: ", response.body?.error?.message ?? "");
+			console.log("Failed link: ", response.url);
+	}
+}
+
+export function submitSitemapGAPI(): Promise<void> {
+	const siteUrl: string = `sc-domain:${domainName}`;
+	const sitemapURL: string = `https://${domainName}/${sitemapPath}`;
+
+	const jwtClient = new google.auth.JWT({
+		keyFile: constants.serviceAccountFile,
+		scopes: ["https://www.googleapis.com/auth/webmasters"],
+	});
+
+	return new Promise((resolve, reject) => {
+		jwtClient.authorize(async (err, tokens): Promise<void> => {
+			if (err) {
+				console.log(
+					"Error while authorizing for webmasters API scope " + err,
+				);
+				process.exit(1);
+			}
+
+			const accessToken: string = tokens?.access_token ?? "";
+
+			if (!!!accessToken) {
+				console.log("Authorization done but access token not found.");
+				process.exit(1);
+			}
+
+			const options: Record<string, any> = {
+				hostname: "www.googleapis.com",
+
+				path: `/webmasters/v3/sites/${encodeURIComponent(
+					siteUrl,
+				)}/sitemaps/${encodeURIComponent(sitemapURL)}`,
+
+				method: "PUT",
+
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					"Content-Type": "application/json",
+				},
+			};
+
+			const req = request(options, (res) => {
+				let responseBody = "";
+				res.on("data", (data) => {
+					responseBody += data;
+				});
+
+				res.on("end", () => {
+					const response: googleIndexResponseOptions = {
+						url: sitemapURL,
+						body: responseBody ? JSON.parse(responseBody) : "",
+						statusCode: res.statusCode as googleIndexStatusCode,
+					};
+					_sitemapGAPIResponseHandler(response);
+
+					lastStateWriter({ submittedSitemap: response.url });
+
+					resolve();
+				});
+			});
+
+			req.on("error", (e) => {
+				reject(`Request error: ${e.message}`);
+			});
+
+			req.end();
+		});
+	});
+}
+
+export function lastSubmissionStatusGAPI(): Promise<sitemapMetaOptions> {
+	const lastSubmittedURL: string = lastStateReader(
+		"submittedSitemap",
+	) as string;
+
+	const jwtClient = new google.auth.JWT({
+		keyFile: constants.serviceAccountFile,
+		scopes: ["https://www.googleapis.com/auth/webmasters"],
+	});
+
+	return new Promise((resolve, reject) => {
+		jwtClient.authorize(async (err, _tokens) => {
+			if (err) {
+				reject(
+					"Authorization error while checking last submission status " +
+						err,
+				);
+			}
+
+			const searchConsole = google.webmasters({
+				version: "v3",
+				auth: jwtClient,
+			});
+
+			const res = await searchConsole.sitemaps.list({
+				siteUrl: `sc-domain:${domainName}`,
+			});
+
+			const targetedMeta = res.data.sitemap?.find(
+				(sitemapMeta) => sitemapMeta.path === lastSubmittedURL,
+			);
+
+			if (targetedMeta) {
+				//Delete unwanted properties
+				delete targetedMeta.path;
+				delete targetedMeta.isSitemapsIndex;
+				delete targetedMeta.type;
+			} else {
+				reject("😕 Last submittion status not found");
+			}
+
+			const sitemapMeta: sitemapMetaOptions = {
+				pageCounts: targetedMeta?.contents
+					? parseInt(targetedMeta?.contents[0].submitted ?? "0")
+					: 0,
+
+				lastSubmitted: convertTimeinCTZone(
+					targetedMeta?.lastSubmitted ?? "",
+				),
+
+				lastDownloaded: convertTimeinCTZone(
+					targetedMeta?.lastDownloaded ?? "",
+				),
+
+				isPending: targetedMeta?.isPending ?? false,
+				warnings: parseInt(targetedMeta?.warnings ?? "0"),
+				errors: parseInt(targetedMeta?.errors ?? "0"),
+			};
+
+			resolve(sitemapMeta);
+		});
 	});
 }

@@ -1,4 +1,9 @@
-import { googleIndex } from "./lib/gindex";
+import { hawkStrategies, sitemapMetaOptions } from "./lib/options";
+import {
+	googleIndex,
+	lastSubmissionStatusGAPI,
+	submitSitemapGAPI,
+} from "./lib/gindex";
 import { indexNow } from "./lib/indexnow";
 import {
 	getLastRunTimeStamp,
@@ -8,6 +13,7 @@ import {
 } from "./lib/utils";
 
 export async function hawk(
+	strategy: hawkStrategies,
 	lookupPatterns: string[] = [],
 	ignorePattern: string[] = [],
 	prettify: boolean = true,
@@ -24,11 +30,37 @@ export async function hawk(
 	const robotTxtStatus: string = makeRobot();
 	console.log("\n" + sitemapStatus, " | ", robotTxtStatus);
 
-	/* For Bing, Yahoo, Yandex, Yep, etc */
-	await indexNow(stateChangedRoutes);
-
-	/* For Google - Web page which has JobPosting or Livestream Broadcasting content. */
-	await googleIndex(stateChangedRoutes);
+	try {
+		await strategyHandler(strategy, stateChangedRoutes);
+	} catch (err) {
+		console.log("Program stopped reason below ⬇️");
+		console.log(err);
+		process.exit(1);
+	}
 }
 
-hawk();
+async function strategyHandler(
+	strategy: hawkStrategies,
+	stateChangedRoutes: string[],
+): Promise<void> {
+	if (strategy === "IndexNow") {
+		/* For Bing, Yahoo, Yandex, Yep, etc */
+		await indexNow(stateChangedRoutes);
+	} else if (strategy === "GIndex") {
+		/* For Google - Web page which has JobPosting or Livestream Broadcasting content. */
+		await googleIndex(stateChangedRoutes);
+	} else if (strategy === "GWebmaster") {
+		/* For all types of website*/
+		await submitSitemapGAPI();
+	} else if (strategy === "GWebmaster2") {
+		/* For all types of website*/
+		await submitSitemapGAPI();
+
+		/* check status */
+		const statusMeta: sitemapMetaOptions =
+			await lastSubmissionStatusGAPI();
+		console.log(statusMeta);
+	}
+}
+
+hawk("GWebmaster2");

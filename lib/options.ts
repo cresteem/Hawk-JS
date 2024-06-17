@@ -23,17 +23,25 @@ export interface RouteMetaOptions {
 	modifiedTime: string;
 }
 
+export type lastStateKeyNames =
+	| "lastRunTimeStamp"
+	| "secretKey"
+	| "submittedSitemap";
+
 export interface ranStatusFileStructute {
 	lastRunTimeStamp: number;
 	secretKey: string;
+	submittedSitemap: string;
 }
 
 interface constantsStructure {
 	ranStatusFile: string;
+	serviceAccountFile: string;
 }
 
 export const constants: constantsStructure = {
 	ranStatusFile: join(process.cwd(), ".hawk.lrs"),
+	serviceAccountFile: join(process.cwd(), "gserv.json"),
 };
 
 interface responseBodyError {
@@ -44,9 +52,24 @@ interface responseBodyError {
 interface responseBodyStructure {
 	error: responseBodyError;
 }
-export type googleIndexStatusCode = 200 | 400 | 403 | 429;
+export type googleIndexStatusCode = 200 | 400 | 403 | 429 | 204;
 export interface googleIndexResponseOptions {
 	url: string;
 	body: responseBodyStructure;
 	statusCode: googleIndexStatusCode;
 }
+
+export interface sitemapMetaOptions {
+	pageCounts: number;
+	lastSubmitted: string;
+	lastDownloaded: string;
+	isPending: boolean;
+	warnings: number;
+	errors: number;
+}
+
+export type hawkStrategies =
+	| "GIndex" /* Google Indexing API - Only for job posting & live broadcasting video content page*/
+	| "GWebmaster" /* General web sitemap submission */
+	| "GWebmaster2" /* General web sitemap submission with status check-back */
+	| "IndexNow"; /* Index now api only for Bing, Yahoo, Yandex, Yep etc */

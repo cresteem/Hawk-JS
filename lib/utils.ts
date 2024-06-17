@@ -13,6 +13,7 @@ import configurations from "../configLoader";
 import {
 	RouteMetaOptions,
 	constants,
+	lastStateKeyNames,
 	ranStatusFileStructute,
 } from "./options";
 const { timeZone } = configurations;
@@ -293,4 +294,40 @@ export function getLastRunTimeStamp(): number {
 		_updateLastRuntimeStamp();
 		return 0;
 	}
+}
+
+export function convertTimeinCTZone(ISOTime: string): string {
+	if (!!!ISOTime) {
+		return ISOTime;
+	}
+	const timeinCTZone: DateTime<true | false> =
+		DateTime.fromISO(ISOTime).setZone(timeZone);
+
+	const formatedTime: string = timeinCTZone.toFormat("hh:mm:ss a - DD");
+	return formatedTime;
+}
+
+export function lastStateWriter(
+	newObject: Partial<ranStatusFileStructute>,
+): void {
+	const previousDataObject: ranStatusFileStructute = JSON.parse(
+		readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
+	);
+	const updatedDataObject: ranStatusFileStructute = {
+		...previousDataObject,
+		...newObject,
+	};
+	writeFileSync(
+		constants.ranStatusFile,
+		JSON.stringify(updatedDataObject, null, 2),
+	);
+}
+
+export function lastStateReader(
+	keyName: lastStateKeyNames,
+): string | number {
+	const dataObject: ranStatusFileStructute = JSON.parse(
+		readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
+	);
+	return dataObject[keyName];
 }
