@@ -1,3 +1,4 @@
+import { Client as FTP } from "basic-ftp";
 import {
 	existsSync,
 	readFileSync,
@@ -107,7 +108,31 @@ function _buildUrlObjects(
 	return urlElements;
 }
 
-export function makeSitemap(prettify: boolean = true): string {
+async function _uploadSitemap(): Promise<boolean> {
+	const ftp: FTP = new FTP();
+
+	try {
+		await ftp.access({
+			user: configurations.ftpCredential.username,
+			password: configurations.ftpCredential.password,
+			host: configurations.ftpCredential.hostname,
+		});
+
+		/* Making path relative from root for server */
+		const remotePath: string = "/" + configurations.sitemapPath;
+
+		await ftp.uploadFrom(configurations.sitemapPath, remotePath);
+
+		ftp.close();
+		return true;
+	} catch (err) {
+		return false;
+	}
+}
+
+export async function makeSitemap(
+	prettify: boolean = true,
+): Promise<string> {
 	const siteMapRootElem: string = "<?xml version='1.0' encoding='UTF-8'?>";
 
 	const sitemapObject: Record<string, any> = {
@@ -130,7 +155,15 @@ export function makeSitemap(prettify: boolean = true): string {
 	/* write sitemap.xml */
 	try {
 		writeFileSync(configurations.sitemapPath, siteMapXML);
-		return "Sitemap created";
+
+		/* Upload site map to ftp server */
+		const uploaded: boolean = await _uploadSitemap();
+		if (!uploaded) {
+			console.log("👎🏻 Failed to upload sitemap.xml to FTP server");
+			process.exit(1);
+		}
+
+		return "✅ Sitemap created and uploaded to server";
 	} catch (err) {
 		console.log("Error while writing sitemap.xml", err);
 		process.exit(1);
@@ -174,7 +207,7 @@ export function makeRobot(): string {
 
 			try {
 				writeFileSync(configurations.robotPath, newRobotContent);
-				return `link updated in existing robot.txt`;
+				return `robot.txt updated`;
 			} catch (err) {
 				console.log("Error updating sitemap in existing robots.txt:", err);
 				process.exit(1);
@@ -185,7 +218,7 @@ export function makeRobot(): string {
 			/* Adding site map to robot.txt */
 			try {
 				writeFileSync(configurations.robotPath, newRobotContent);
-				return `link added in existing robot.txt`;
+				return `link added in robot.txt`;
 			} catch (err) {
 				console.log("Error adding sitemap in existing robots.txt:", err);
 				process.exit(1);
@@ -197,7 +230,7 @@ export function makeRobot(): string {
 		/* Creating robot.txt and adding sitemap link into it */
 		try {
 			writeFileSync(configurations.robotPath, robotContent);
-			return "robot.txt created and link added into it";
+			return "robot.txt created";
 		} catch (err) {
 			console.log("Error while creating robot.txt");
 			process.exit(1);

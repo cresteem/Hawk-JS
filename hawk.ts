@@ -26,7 +26,7 @@ export async function hawk(
 	);
 
 	/* Create sitemap.xml and robot.txt */
-	const sitemapStatus: string = makeSitemap(prettify);
+	const sitemapStatus: string = await makeSitemap(prettify);
 	const robotTxtStatus: string = makeRobot();
 	console.log("\n" + sitemapStatus, " | ", robotTxtStatus);
 
