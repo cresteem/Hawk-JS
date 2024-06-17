@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-import { ConfigurationOptions } from "./lib/options";
+import { ConfigurationOptions, ftpCredentialOptions } from "./lib/options";
 
 const CONFIG_FILE_NAME = "hawk.config.json";
 
@@ -32,9 +32,16 @@ defaultConfig = JSON.parse(
 	readFileSync(join(__dirname, CONFIG_FILE_NAME), { encoding: "utf8" }),
 );
 
+const ftpCredential: ftpCredentialOptions = {
+	hostname: process.env.FTPHOST ?? "",
+	username: process.env.FTPUSER ?? "",
+	password: process.env.FTPPASS ?? "",
+};
+
 const configurations: ConfigurationOptions = {
 	...defaultConfig,
 	...projectConfig,
+	...{ ftpCredential: ftpCredential },
 };
 
 export default configurations;

@@ -1,11 +1,21 @@
-import { existsSync, readFileSync, statSync, writeFileSync } from "fs";
+import {
+	existsSync,
+	readFileSync,
+	statSync,
+	writeFileSync,
+	rmSync,
+} from "fs";
 import { globSync } from "glob";
 import { toXML as XMLBuilder } from "jstoxml";
 import { DateTime } from "luxon";
 import { basename, relative } from "path";
 import configurations from "../configLoader";
-import { RouteMetaOptions } from "./options";
-
+import {
+	RouteMetaOptions,
+	constants,
+	ranStatusFileStructute,
+} from "./options";
+const { timeZone } = configurations;
 /* sitemap oriented function def started */
 function _lookupFiles(
 	lookupPatterns: string[] = [],
@@ -191,5 +201,96 @@ export function makeRobot(): string {
 			console.log("Error while creating robot.txt");
 			process.exit(1);
 		}
+	}
+}
+
+export function getUpdatedRoutesPath(
+	lastRunTimeStamp: number,
+	lookupPatterns: string[] = [],
+	ignorePattern: string[] = [],
+): string[] {
+	const stateChangedRoutes: string[] = getRoutesMeta(
+		lookupPatterns,
+		ignorePattern,
+	)
+		.filter((routeMeta) => {
+			const routeModTimeStamp: number = DateTime.fromISO(
+				routeMeta.modifiedTime,
+			).toMillis();
+
+			/* return true since the file is modified from the last runtime */
+			if (lastRunTimeStamp) {
+				if (lastRunTimeStamp < routeModTimeStamp) return true;
+				else return false;
+			} /* This block meant to execute if there is no last runtime stamp */ else {
+				/* Since there is no lastrun time stamp all files are considered as updated */
+				return true;
+			}
+		})
+		.map((routeMeta) => routeMeta.route);
+
+	if (stateChangedRoutes.length === 0) {
+		console.log("\nNo routes were updated");
+		process.exit(0);
+	}
+
+	console.log("\nUpdated routes:");
+	stateChangedRoutes.forEach((updatedRoute: string) => {
+		console.log(updatedRoute);
+	});
+
+	return stateChangedRoutes;
+}
+
+function _updateLastRuntimeStamp(
+	previousDataObject: ranStatusFileStructute | null = null,
+): void {
+	const currentTimeStamp: number = DateTime.now()
+		.setZone(timeZone)
+		.toMillis();
+
+	/* Create new object if previous data object is not passed as a parameter */
+	const dataObject: ranStatusFileStructute =
+		({ ...previousDataObject } as ranStatusFileStructute) ??
+		({
+			lastRunTimeStamp: 0,
+			secretKey: "",
+		} as ranStatusFileStructute);
+
+	/* Updating timestamp */
+	dataObject.lastRunTimeStamp = currentTimeStamp;
+
+	try {
+		writeFileSync(
+			constants.ranStatusFile,
+			JSON.stringify(dataObject, null, 2),
+		);
+	} catch {
+		console.log("Error making/updating ran status file");
+		process.exit(1);
+	}
+}
+
+export function getLastRunTimeStamp(): number {
+	if (existsSync(constants.ranStatusFile)) {
+		try {
+			const ranStatusObject: ranStatusFileStructute = JSON.parse(
+				readFileSync(constants.ranStatusFile, {
+					encoding: "utf8",
+				}),
+			);
+
+			/* Update last run time stamp */
+			_updateLastRuntimeStamp(ranStatusObject);
+
+			return ranStatusObject.lastRunTimeStamp;
+		} catch (err) {
+			console.log("Error getting last run status");
+			rmSync(constants.ranStatusFile);
+			process.exit(1);
+		}
+	} /* This block meant to execute if file not exist */ else {
+		_updateLastRuntimeStamp();
+		return 0;
 	}
 }

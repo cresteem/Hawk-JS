@@ -30,11 +30,12 @@
 	"license": "Apache-2.0",
 	"private": false,
 	"scripts": {
+		"env": "setenv.bat",
 		"dev": "rimraf dist && tsc -p tscdev.json && ncp ./hawk.config.json ./dist/hawk.config.json",
 		"dr": "cls && yarn dev && yarn rp",
-		"rp": "node ./dist/hawk.js",
+		"rp": "node --no-warnings ./dist/hawk.js",
 		"test": "jest",
-		"build": "cls && rimraf dist && tsc -p tsconfig.json && ncp ./hawk.config.json ./dist/hawk.config.json",
+		"build": "cls && eslint && rimraf dist && tsc -p tsconfig.json && ncp ./hawk.config.json ./dist/hawk.config.json",
 		"watch": "tsc --watch",
 		"clean": "cls && rimraf dist",
 		"deploy": "yarn build && yarn publish --access public && git push"
@@ -51,6 +52,7 @@
 	"dependencies": {
 		"basic-ftp": "^5.0.5",
 		"glob": "10.3.15",
+		"googleapis": "140.0.0",
 		"jstoxml": "5.0.1",
 		"luxon": "3.4.4",
 		"yargs": "17.7.2"
