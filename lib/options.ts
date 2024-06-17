@@ -68,7 +68,7 @@ export interface sitemapMetaOptions {
 	errors: number;
 }
 
-export type hawkStrategies =
+export type suppotredStrategies =
 	| "GIndex" /* Google Indexing API - Only for job posting & live broadcasting video content page*/
 	| "GWebmaster" /* General web sitemap submission */
 	| "GWebmaster2" /* General web sitemap submission with status check-back */

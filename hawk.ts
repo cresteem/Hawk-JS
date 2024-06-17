@@ -1,4 +1,4 @@
-import { hawkStrategies, sitemapMetaOptions } from "./lib/options";
+import { suppotredStrategies, sitemapMetaOptions } from "./lib/options";
 import {
 	googleIndex,
 	lastSubmissionStatusGAPI,
@@ -12,8 +12,29 @@ import {
 	makeSitemap,
 } from "./lib/utils";
 
+/* Free call Exports */
+export const hawkStrategy = {
+	indexNow: async (routes: string[]) => {
+		await indexNow(routes);
+	},
+	gIndex: async (routes: string[]) => {
+		await googleIndex(routes);
+	},
+	gWebmaster: async () => {
+		await submitSitemapGAPI();
+	},
+	gWebmaster2: async () => {
+		await submitSitemapGAPI();
+
+		/* check status */
+		const statusMeta: sitemapMetaOptions =
+			await lastSubmissionStatusGAPI();
+		console.log(statusMeta);
+	},
+};
+
 export async function hawk(
-	strategy: hawkStrategies,
+	strategy: suppotredStrategies,
 	lookupPatterns: string[] = [],
 	ignorePattern: string[] = [],
 	prettify: boolean = true,
@@ -40,26 +61,21 @@ export async function hawk(
 }
 
 async function strategyHandler(
-	strategy: hawkStrategies,
+	strategy: suppotredStrategies,
 	stateChangedRoutes: string[],
 ): Promise<void> {
 	if (strategy === "IndexNow") {
 		/* For Bing, Yahoo, Yandex, Yep, etc */
-		await indexNow(stateChangedRoutes);
+		await hawkStrategy.indexNow(stateChangedRoutes);
 	} else if (strategy === "GIndex") {
 		/* For Google - Web page which has JobPosting or Livestream Broadcasting content. */
-		await googleIndex(stateChangedRoutes);
+		await hawkStrategy.gIndex(stateChangedRoutes);
 	} else if (strategy === "GWebmaster") {
 		/* For all types of website*/
-		await submitSitemapGAPI();
+		await hawkStrategy.gWebmaster();
 	} else if (strategy === "GWebmaster2") {
 		/* For all types of website*/
-		await submitSitemapGAPI();
-
-		/* check status */
-		const statusMeta: sitemapMetaOptions =
-			await lastSubmissionStatusGAPI();
-		console.log(statusMeta);
+		await hawkStrategy.gWebmaster2();
 	}
 }
 
