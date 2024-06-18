@@ -20,10 +20,22 @@ export const hawkStrategy = {
 	gIndex: async (routes: string[]) => {
 		await googleIndex(routes);
 	},
-	gWebmaster: async () => {
+	gWebmaster: async (
+		prettify: boolean = true,
+		lookupPatterns: string[] = [],
+		ignorePattern: string[] = [],
+	) => {
+		await _makeSitemapRobot(prettify, lookupPatterns, ignorePattern);
+
 		await submitSitemapGAPI();
 	},
-	gWebmaster2: async () => {
+	gWebmaster2: async (
+		prettify: boolean = true,
+		lookupPatterns: string[] = [],
+		ignorePattern: string[] = [],
+	) => {
+		await _makeSitemapRobot(prettify, lookupPatterns, ignorePattern);
+
 		await submitSitemapGAPI();
 
 		/* check status */
@@ -46,13 +58,14 @@ export async function hawk(
 		ignorePattern,
 	);
 
-	/* Create sitemap.xml and robot.txt */
-	const sitemapStatus: string = await makeSitemap(prettify);
-	const robotTxtStatus: string = makeRobot();
-	console.log("\n" + sitemapStatus, " | ", robotTxtStatus);
-
 	try {
-		await strategyHandler(strategy, stateChangedRoutes);
+		await strategyHandler(
+			strategy,
+			stateChangedRoutes,
+			prettify,
+			lookupPatterns,
+			ignorePattern,
+		);
 	} catch (err) {
 		console.log("Program stopped reason below ⬇️");
 		console.log(err);
@@ -60,23 +73,44 @@ export async function hawk(
 	}
 }
 
+async function _makeSitemapRobot(
+	prettify: boolean,
+	lookupPatterns: string[] = [],
+	ignorePattern: string[] = [],
+) {
+	/* Create sitemap.xml and robot.txt */
+	const sitemapStatus: string = await makeSitemap(
+		prettify,
+		lookupPatterns,
+		ignorePattern,
+	);
+	const robotTxtStatus: string = makeRobot();
+	console.log("\n" + sitemapStatus, " | ", robotTxtStatus);
+}
+
 async function strategyHandler(
 	strategy: suppotredStrategies,
 	stateChangedRoutes: string[],
+	prettify: boolean = true,
+	lookupPatterns: string[] = [],
+	ignorePattern: string[] = [],
 ): Promise<void> {
-	if (strategy === "IndexNow") {
+	const strategyLowercase: string = strategy.toLowerCase();
+	if (strategyLowercase === "indexnow") {
 		/* For Bing, Yahoo, Yandex, Yep, etc */
 		await hawkStrategy.indexNow(stateChangedRoutes);
-	} else if (strategy === "GIndex") {
+	} else if (strategyLowercase === "gindex") {
 		/* For Google - Web page which has JobPosting or Livestream Broadcasting content. */
 		await hawkStrategy.gIndex(stateChangedRoutes);
-	} else if (strategy === "GWebmaster") {
+	} else if (strategyLowercase === "gwebmaster") {
 		/* For all types of website*/
-		await hawkStrategy.gWebmaster();
-	} else if (strategy === "GWebmaster2") {
+		await hawkStrategy.gWebmaster(prettify, lookupPatterns, ignorePattern);
+	} else if (strategyLowercase === "gwebmaster2") {
 		/* For all types of website*/
-		await hawkStrategy.gWebmaster2();
+		await hawkStrategy.gWebmaster2(
+			prettify,
+			lookupPatterns,
+			ignorePattern,
+		);
 	}
 }
-
-hawk("GWebmaster2");

@@ -132,6 +132,8 @@ async function _uploadSitemap(): Promise<boolean> {
 
 export async function makeSitemap(
 	prettify: boolean = true,
+	lookupPatterns: string[] = [],
+	ignorePattern: string[] = [],
 ): Promise<string> {
 	const siteMapRootElem: string = "<?xml version='1.0' encoding='UTF-8'?>";
 
@@ -143,7 +145,9 @@ export async function makeSitemap(
 				"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd",
 			xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		},
-		_content: _buildUrlObjects(getRoutesMeta()),
+		_content: _buildUrlObjects(
+			getRoutesMeta(lookupPatterns, ignorePattern),
+		),
 	};
 
 	/* Build sitemap xml */
