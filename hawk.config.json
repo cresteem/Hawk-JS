@@ -9,5 +9,6 @@
 	"timeZone": "Asia/Kolkata",
 	"domainName": "www.example.com",
 	"sitemapPath": "sitemap.xml",
-	"robotPath": "robot.txt"
+	"robotPath": "robot.txt",
+	"secretFile": "secrets.json"
 }

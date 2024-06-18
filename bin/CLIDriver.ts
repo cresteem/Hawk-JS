@@ -3,6 +3,7 @@
 import yargs from "yargs";
 import { hawk, hawkStrategy } from "../hawk";
 import { makeSitemap } from "../lib/utils";
+import { secretLoadWindows } from "./secretsLoader";
 
 async function _genMapHandler(argv: any): Promise<void> {
 	if (argv.commit) {
@@ -63,12 +64,16 @@ async function main(): Promise<void> {
 				});
 			},
 		)
+		.command("secret", "Set secret credentials")
 		.strict()
 		.help().argv;
 
 	const isGenMap: boolean = argv._.includes("genmap");
+	const isSecret: boolean = argv._.includes("secret");
 	if (isGenMap) {
 		_genMapHandler(argv);
+	} else if (isSecret) {
+		secretLoadWindows();
 	} else {
 		_mainHandler(argv);
 	}

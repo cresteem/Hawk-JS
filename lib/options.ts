@@ -13,6 +13,7 @@ export interface ConfigurationOptions {
 	domainName: string;
 	sitemapPath: string;
 	robotPath: string;
+	secretFile: string;
 
 	/* Private property */
 	ftpCredential: ftpCredentialOptions;
@@ -73,3 +74,9 @@ export type suppotredStrategies =
 	| "GWebmaster" /* General web sitemap submission */
 	| "GWebmaster2" /* General web sitemap submission with status check-back */
 	| "IndexNow"; /* Index now api only for Bing, Yahoo, Yandex, Yep etc */
+
+export interface secretObjectStructure {
+	host: string;
+	user: string;
+	pass: string;
+}

@@ -30,7 +30,6 @@
 	"license": "Apache-2.0",
 	"private": false,
 	"scripts": {
-		"env": "setenv.bat",
 		"dev": "rimraf dist && tsc -p tscdev.json && ncp ./hawk.config.json ./dist/hawk.config.json",
 		"dr": "cls && yarn dev && yarn rp",
 		"rp": "node --no-warnings ./dist/hawk.js",
