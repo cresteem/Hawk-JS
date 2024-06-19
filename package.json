@@ -1,7 +1,7 @@
 {
 	"name": "@cresteem/hawk-js",
 	"displayName": "Hawk JS",
-	"version": "0.0.1a",
+	"version": "1.0.0",
 	"description": "Hawk JS: Generate and submit sitemap.xml and robot.txt to search engines with a command.",
 	"main": "./dist/hawk.js",
 	"exports": {
@@ -37,7 +37,7 @@
 		"build": "cls && eslint && rimraf dist && tsc -p tsconfig.json && ncp ./hawk.config.json ./dist/hawk.config.json",
 		"watch": "tsc --watch",
 		"clean": "cls && rimraf dist",
-		"deploy": "yarn build && yarn publish --access public && git push"
+		"deploy": "yarn test && yarn build && yarn publish --access public && git push"
 	},
 	"keywords": [
 		"Sitemap",
@@ -67,11 +67,11 @@
 		"@typescript-eslint/parser": "7.13.0",
 		"babel-jest": "29.7.0",
 		"eslint": "^9.5.0",
-		"fast-xml-parser": "4.4.0",
 		"jest": "29.7.0",
 		"ncp": "2.0.0",
 		"rimraf": "5.0.5",
 		"ts-node": "10.9.2",
-		"typescript": "5.4.5"
+		"typescript": "5.4.5",
+		"xsd-schema-validator": "^0.9.0"
 	}
 }

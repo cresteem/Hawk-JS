@@ -134,6 +134,7 @@ export async function makeSitemap(
 	prettify: boolean = true,
 	lookupPatterns: string[] = [],
 	ignorePattern: string[] = [],
+	dontup: boolean = false,
 ): Promise<string> {
 	const siteMapRootElem: string = "<?xml version='1.0' encoding='UTF-8'?>";
 
@@ -160,14 +161,16 @@ export async function makeSitemap(
 	try {
 		writeFileSync(configurations.sitemapPath, siteMapXML);
 
-		/* Upload site map to ftp server */
-		const uploaded: boolean = await _uploadSitemap();
-		if (!uploaded) {
-			console.log("👎🏻 Failed to upload sitemap.xml to FTP server");
-			process.exit(1);
+		if (!dontup) {
+			/* Upload site map to ftp server */
+			const uploaded: boolean = await _uploadSitemap();
+			if (!uploaded) {
+				console.log("👎🏻 Failed to upload sitemap.xml to FTP server");
+				process.exit(1);
+			}
 		}
 
-		return "✅ Sitemap created and uploaded to server";
+		return `✅ Sitemap created ${!dontup ? "and uploaded to server" : ""}`;
 	} catch (err) {
 		console.log("Error while writing sitemap.xml", err);
 		process.exit(1);
