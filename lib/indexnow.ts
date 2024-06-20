@@ -12,9 +12,20 @@ function _makeSecretKey(): string {
 }
 
 async function _secretKeyManager(): Promise<string> {
-	const ranStatusObject = JSON.parse(
-		readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
-	);
+	let ranStatusObject: ranStatusFileStructute =
+		{} as ranStatusFileStructute;
+
+	try {
+		ranStatusObject = JSON.parse(
+			readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
+		);
+	} catch (err: any) {
+		if (err.code === "ENOENT") {
+			writeFileSync(constants.ranStatusFile, JSON.stringify({}, null, 2), {
+				encoding: "utf8",
+			});
+		}
+	}
 
 	const oldSecretKey: string = ranStatusObject.secretKey ?? "";
 

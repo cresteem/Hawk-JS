@@ -120,5 +120,6 @@ export const utilities = {
 	getUpdatedRoutesPath,
 	makeRobot,
 	makeSitemap,
+	getLastRunTimeStamp,
 	_makeSitemapRobot,
 };
