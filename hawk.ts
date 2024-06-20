@@ -114,3 +114,11 @@ async function strategyHandler(
 		);
 	}
 }
+
+export const utilities = {
+	lastSubmissionStatusGAPI,
+	getUpdatedRoutesPath,
+	makeRobot,
+	makeSitemap,
+	_makeSitemapRobot,
+};
