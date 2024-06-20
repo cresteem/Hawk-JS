@@ -21,7 +21,7 @@
 	"bugs": {
 		"url": "https://github.com/cresteem/Hawk-JS/issues"
 	},
-	"homepage": "not-added",
+	"homepage": "https://www.cresteem.com/opensource/hawk-js",
 	"author": "CRESTEEM <connect@cresteem.com>",
 	"maintainers": [
 		"CRESTEEM <connect@cresteem.com>",
@@ -42,7 +42,15 @@
 	"keywords": [
 		"Sitemap",
 		"Generator",
-		"Robot",
+		"automate",
+		"submission",
+		"Feeder",
+		"Hinter",
+		"indexnow",
+		"google",
+		"console",
+		"indexing",
+		"api",
 		"SEO",
 		"Search",
 		"Engine",
