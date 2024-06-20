@@ -1,13 +1,19 @@
 {
 	"name": "@cresteem/hawk-js",
 	"displayName": "Hawk JS",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Hawk JS: Generate and submit sitemap.xml and robot.txt to search engines with a command.",
 	"main": "./dist/hawk.js",
 	"exports": {
 		"import": "./dist/hawk.js",
 		"require": "./dist/hawk.js",
 		"types": "./dist/types/hawk.d.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"directories": {
+		"lib": "./dist/lib"
 	},
 	"engines": {
 		"node": ">=21.7.3",
