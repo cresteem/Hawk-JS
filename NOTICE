@@ -3,7 +3,7 @@
 
 Available on NPM:
 
-![NPM Version](https://img.shields.io/npm/v/%40cresteem%2Fhawk-js?style=flat&logo=rocket&logoColor=black&logoSize=auto&label=Richie%20JS%20Version&labelColor=white)
+![NPM Version](https://img.shields.io/npm/v/%40cresteem%2Fhawk-js?style=flat&logo=rocket&logoColor=black&logoSize=auto&label=Hawk%20JS%20Version&labelColor=white)
 
 
 ![NPM Downloads](https://img.shields.io/npm/d18m/%40cresteem%2Fhawk-js?style=flat&logo=rocket&logoColor=black&logoSize=auto&label=Download%20Counts&labelColor=white&color=rgb(80,200,10))
@@ -32,11 +32,11 @@ This attribution must be displayed in a prominent location in any documentation,
 
 ## Installation
 ```bash
-yarn add @cresteem/richie-js
+yarn add @cresteem/hawk-js
 
 or
 
-npm i @cresteem/richie-js
+npm i @cresteem/hawk-js
 ```
 
 ## 👨🏻‍💻 CLI
