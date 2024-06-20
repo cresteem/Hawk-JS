@@ -6,11 +6,10 @@ import configuration from "../configLoader";
 import { secretObjectStructure } from "../lib/options";
 const { secretFile } = configuration;
 
-const secretData: secretObjectStructure = JSON.parse(
-	readFileSync(join(process.cwd(), secretFile), { encoding: "utf8" }),
-);
-
 export function secretLoadWindows(): void {
+	const secretData: secretObjectStructure = JSON.parse(
+		readFileSync(join(process.cwd(), secretFile), { encoding: "utf8" }),
+	);
 	//make batchFile
 	const batchScript: string = `setx /M FTPHOST "${secretData.host}"\nsetx /M FTPUSER "${secretData.user}"\nsetx /M FTPPASS "${secretData.pass}"`;
 
