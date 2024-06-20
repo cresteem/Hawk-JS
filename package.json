@@ -1,7 +1,7 @@
 {
 	"name": "@cresteem/hawk-js",
 	"displayName": "Hawk JS",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Hawk JS: Generate and submit sitemap.xml and robot.txt to search engines with a command.",
 	"main": "./dist/hawk.js",
 	"exports": {
