@@ -263,6 +263,11 @@ export function lastSubmissionStatusGAPI(): Promise<sitemapMetaOptions> {
 		"submittedSitemap",
 	) as string;
 
+	if (!lastSubmittedURL) {
+		console.log("Record of submission not found");
+		process.exit(1);
+	}
+
 	const jwtClient = new google.auth.JWT({
 		keyFile: constants.serviceAccountFile,
 		scopes: ["https://www.googleapis.com/auth/webmasters"],

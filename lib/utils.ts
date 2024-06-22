@@ -350,9 +350,20 @@ export function convertTimeinCTZone(ISOTime: string): string {
 export function lastStateWriter(
 	newObject: Partial<ranStatusFileStructute>,
 ): void {
-	const previousDataObject: ranStatusFileStructute = JSON.parse(
-		readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
-	);
+	let previousDataObject: ranStatusFileStructute;
+	try {
+		previousDataObject = JSON.parse(
+			readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
+		);
+	} catch (err: any) {
+		if (err.code === "ENOENT") {
+			previousDataObject = {} as ranStatusFileStructute;
+		} else {
+			console.log("Unexpected error ", err);
+			process.exit(1);
+		}
+	}
+
 	const updatedDataObject: ranStatusFileStructute = {
 		...previousDataObject,
 		...newObject,
@@ -366,8 +377,18 @@ export function lastStateWriter(
 export function lastStateReader(
 	keyName: lastStateKeyNames,
 ): string | number {
-	const dataObject: ranStatusFileStructute = JSON.parse(
-		readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
-	);
+	let dataObject: ranStatusFileStructute;
+	try {
+		dataObject = JSON.parse(
+			readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
+		);
+	} catch (err: any) {
+		if (err.code === "ENOENT") {
+			return 0;
+		} else {
+			console.log("Unexpected error ", err);
+			process.exit(1);
+		}
+	}
 	return dataObject[keyName];
 }
