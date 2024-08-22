@@ -50,7 +50,7 @@
 
 <span>
   <a href="https://github.com/cresteem/Hawk-JS/releases">
-    <img src="https://img.shields.io/github/v/release/cresteem/Hawk-JS?include_prereleases&sort=date&display_name=tag&style=for-the-badge&label=Latest%20Version" alt="GitHub Release"/>
+    <img src="https://img.shields.io/github/v/release/cresteem/Hawk-JS?sort=date&display_name=tag&style=for-the-badge&label=Latest%20Version" alt="GitHub Release"/>
   </a>
 </span>
 
