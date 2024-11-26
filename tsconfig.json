@@ -25,16 +25,17 @@
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"pretty": false,
-		"noUnusedLocals": true,
+		"noUnusedLocals": false,
 		"noImplicitOverride": false,
 		"noUnusedParameters": true,
 		"noUncheckedIndexedAccess": false,
 		"sourceMap": false,
-		"removeComments": true
+		"removeComments": true,
+		"skipLibCheck": true
 	},
 	"exclude": [
 		"node_modules",
 		"test",
-		"jest.config.ts"
+		"jest.config.ts",
 	]
 }

@@ -3,8 +3,8 @@ import { randomBytes } from "crypto";
 import { readFileSync, rmSync, writeFileSync } from "fs";
 import { request } from "https";
 import configurations from "../configLoader";
-import { constants, ranStatusFileStructute } from "./options";
-const { domainName } = configurations;
+import { constants, RanStatusFileStructure } from "./types";
+const { domainName, ftpCredential } = configurations();
 
 function _makeSecretKey(): string {
 	/* Make 32 char hex key */
@@ -12,8 +12,8 @@ function _makeSecretKey(): string {
 }
 
 async function _secretKeyManager(): Promise<string> {
-	let ranStatusObject: ranStatusFileStructute =
-		{} as ranStatusFileStructute;
+	let ranStatusObject: RanStatusFileStructure =
+		{} as RanStatusFileStructure;
 
 	try {
 		ranStatusObject = JSON.parse(
@@ -43,9 +43,9 @@ async function _secretKeyManager(): Promise<string> {
 		const ftp: FTP = new FTP();
 		try {
 			await ftp.access({
-				user: configurations.ftpCredential.username,
-				password: configurations.ftpCredential.password,
-				host: configurations.ftpCredential.hostname,
+				user: ftpCredential.username,
+				password: ftpCredential.password,
+				host: ftpCredential.hostname,
 			});
 			await ftp.uploadFrom(tempkeyfile, keyDestination);
 			console.log("KeyFile Uploaded to server 🔑👍🏻");
@@ -55,7 +55,7 @@ async function _secretKeyManager(): Promise<string> {
 			rmSync(tempkeyfile);
 
 			/* keeping secret key*/
-			let newObject: ranStatusFileStructute = { ...ranStatusObject };
+			let newObject: RanStatusFileStructure = { ...ranStatusObject };
 			newObject.secretKey = secretKey;
 			writeFileSync(
 				constants.ranStatusFile,

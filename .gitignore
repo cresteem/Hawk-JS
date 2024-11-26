@@ -1,6 +1,7 @@
 node_modules
 dist
-sample-op
-credentials
+robot.txt
+sitemap.xml
 .hawk.lrs
-
+gserv.json
+secrets.json

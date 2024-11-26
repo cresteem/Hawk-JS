@@ -2,9 +2,9 @@ import { Client as FTP } from "basic-ftp";
 import {
 	existsSync,
 	readFileSync,
+	rmSync,
 	statSync,
 	writeFileSync,
-	rmSync,
 } from "fs";
 import { globSync } from "glob";
 import { toXML as XMLBuilder } from "jstoxml";
@@ -12,20 +12,20 @@ import { DateTime } from "luxon";
 import { basename, relative } from "path";
 import configurations from "../configLoader";
 import {
-	RouteMetaOptions,
 	constants,
-	lastStateKeyNames,
-	ranStatusFileStructute,
-} from "./options";
-const { timeZone } = configurations;
+	LastStateType,
+	RanStatusFileStructure,
+	RouteMeta,
+} from "./types";
+const config = configurations();
 /* sitemap oriented function def started */
 function _lookupFiles(
 	lookupPatterns: string[] = [],
 	ignorePattern: string[] = [],
 ): string[] {
 	const webPageFilePaths: string[] = globSync(
-		[...configurations.lookupPatterns, ...lookupPatterns],
-		{ ignore: [...configurations.ignorePattern, ...ignorePattern] },
+		[...config.lookupPatterns, ...lookupPatterns],
+		{ ignore: [...config.ignorePattern, ...ignorePattern] },
 	);
 
 	return webPageFilePaths;
@@ -35,7 +35,7 @@ function _lookupFiles(
 function _getModtime(filePath: string): string | null {
 	const mTime: number = statSync(filePath).mtime.getTime(); //in epoch
 	const ISOTime: string | null = DateTime.fromMillis(mTime)
-		.setZone(configurations.timeZone)
+		.setZone(config.timeZone)
 		.toISO();
 	return ISOTime;
 }
@@ -43,8 +43,8 @@ function _getModtime(filePath: string): string | null {
 export function getRoutesMeta(
 	lookupPatterns: string[] = [],
 	ignorePattern: string[] = [],
-): RouteMetaOptions[] {
-	const routesMeta: RouteMetaOptions[] = [] as RouteMetaOptions[];
+): RouteMeta[] {
+	const routesMeta: RouteMeta[] = [] as RouteMeta[];
 
 	_lookupFiles(lookupPatterns, ignorePattern).forEach(
 		(filePath: string): void => {
@@ -53,7 +53,7 @@ export function getRoutesMeta(
 			/* Make web standard path: */
 
 			const pageExtension: string =
-				"." + basename(relativePath).split(".").at(-1) ?? "";
+				"." + basename(relativePath).split(".").at(-1) || "";
 
 			let standardPath: string;
 
@@ -79,7 +79,7 @@ export function getRoutesMeta(
 				}
 			}
 
-			const route: string = `https://${configurations.domainName}/${standardPath}`;
+			const route: string = `https://${config.domainName}/${standardPath}`;
 
 			routesMeta.push({
 				route: route,
@@ -91,9 +91,7 @@ export function getRoutesMeta(
 	return routesMeta;
 }
 
-function _buildUrlObjects(
-	routesMeta: RouteMetaOptions[],
-): Record<string, any>[] {
+function _buildUrlObjects(routesMeta: RouteMeta[]): Record<string, any>[] {
 	const urlElements: Record<string, any>[] = [];
 
 	for (const routeMeta of routesMeta) {
@@ -113,15 +111,15 @@ async function _uploadSitemap(): Promise<boolean> {
 
 	try {
 		await ftp.access({
-			user: configurations.ftpCredential.username,
-			password: configurations.ftpCredential.password,
-			host: configurations.ftpCredential.hostname,
+			user: config.ftpCredential.username,
+			password: config.ftpCredential.password,
+			host: config.ftpCredential.hostname,
 		});
 
 		/* Making path relative from root for server */
-		const remotePath: string = "/" + configurations.sitemapPath;
+		const remotePath: string = "/" + config.sitemapPath;
 
-		await ftp.uploadFrom(configurations.sitemapPath, remotePath);
+		await ftp.uploadFrom(config.sitemapPath, remotePath);
 
 		ftp.close();
 		return true;
@@ -147,7 +145,7 @@ export async function makeSitemap(
 			xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		},
 		_content: _buildUrlObjects(
-			getRoutesMeta(lookupPatterns, ignorePattern),
+			getRoutesMeta(lookupPatterns, [...ignorePattern, "node_modules/**"]),
 		),
 	};
 
@@ -159,7 +157,7 @@ export async function makeSitemap(
 
 	/* write sitemap.xml */
 	try {
-		writeFileSync(configurations.sitemapPath, siteMapXML);
+		writeFileSync(config.sitemapPath, siteMapXML);
 
 		if (!dontup) {
 			/* Upload site map to ftp server */
@@ -179,14 +177,14 @@ export async function makeSitemap(
 
 /* Robot.txt oriented functions */
 export function makeRobot(): string {
-	const robotContent: string = `sitemap: https://${configurations.domainName}/${configurations.sitemapPath}\n`;
+	const robotContent: string = `sitemap: https://${config.domainName}/${config.sitemapPath}\n`;
 
-	if (existsSync(configurations.robotPath)) {
+	if (existsSync(config.robotPath)) {
 		let previousContent: string;
 
 		/* Read and load previous content */
 		try {
-			previousContent = readFileSync(configurations.robotPath, "utf8");
+			previousContent = readFileSync(config.robotPath, "utf8");
 		} catch (err) {
 			console.log("Error while reading robot.txt");
 			process.exit(1);
@@ -213,7 +211,7 @@ export function makeRobot(): string {
 			const newRobotContent: string = robotContent + previousContent;
 
 			try {
-				writeFileSync(configurations.robotPath, newRobotContent);
+				writeFileSync(config.robotPath, newRobotContent);
 				return `robot.txt updated`;
 			} catch (err) {
 				console.log("Error updating sitemap in existing robots.txt:", err);
@@ -224,7 +222,7 @@ export function makeRobot(): string {
 
 			/* Adding site map to robot.txt */
 			try {
-				writeFileSync(configurations.robotPath, newRobotContent);
+				writeFileSync(config.robotPath, newRobotContent);
 				return `link added in robot.txt`;
 			} catch (err) {
 				console.log("Error adding sitemap in existing robots.txt:", err);
@@ -236,7 +234,7 @@ export function makeRobot(): string {
 
 		/* Creating robot.txt and adding sitemap link into it */
 		try {
-			writeFileSync(configurations.robotPath, robotContent);
+			writeFileSync(config.robotPath, robotContent);
 			return "robot.txt created";
 		} catch (err) {
 			console.log("Error while creating robot.txt");
@@ -284,19 +282,19 @@ export function getUpdatedRoutesPath(
 }
 
 function _updateLastRuntimeStamp(
-	previousDataObject: ranStatusFileStructute | null = null,
+	previousDataObject: RanStatusFileStructure | null = null,
 ): void {
 	const currentTimeStamp: number = DateTime.now()
-		.setZone(timeZone)
+		.setZone(config.timeZone)
 		.toMillis();
 
 	/* Create new object if previous data object is not passed as a parameter */
-	const dataObject: ranStatusFileStructute =
-		({ ...previousDataObject } as ranStatusFileStructute) ??
+	const dataObject: RanStatusFileStructure =
+		(previousDataObject as RanStatusFileStructure) ??
 		({
 			lastRunTimeStamp: 0,
 			secretKey: "",
-		} as ranStatusFileStructute);
+		} as RanStatusFileStructure);
 
 	/* Updating timestamp */
 	dataObject.lastRunTimeStamp = currentTimeStamp;
@@ -315,7 +313,7 @@ function _updateLastRuntimeStamp(
 export function getLastRunTimeStamp(): number {
 	if (existsSync(constants.ranStatusFile)) {
 		try {
-			const ranStatusObject: ranStatusFileStructute = JSON.parse(
+			const ranStatusObject: RanStatusFileStructure = JSON.parse(
 				readFileSync(constants.ranStatusFile, {
 					encoding: "utf8",
 				}),
@@ -340,31 +338,32 @@ export function convertTimeinCTZone(ISOTime: string): string {
 	if (!!!ISOTime) {
 		return ISOTime;
 	}
-	const timeinCTZone: DateTime<true | false> =
-		DateTime.fromISO(ISOTime).setZone(timeZone);
+	const timeinCTZone: DateTime<true | false> = DateTime.fromISO(
+		ISOTime,
+	).setZone(config.timeZone);
 
 	const formatedTime: string = timeinCTZone.toFormat("hh:mm:ss a - DD");
 	return formatedTime;
 }
 
 export function lastStateWriter(
-	newObject: Partial<ranStatusFileStructute>,
+	newObject: Partial<RanStatusFileStructure>,
 ): void {
-	let previousDataObject: ranStatusFileStructute;
+	let previousDataObject: RanStatusFileStructure;
 	try {
 		previousDataObject = JSON.parse(
 			readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
 		);
 	} catch (err: any) {
 		if (err.code === "ENOENT") {
-			previousDataObject = {} as ranStatusFileStructute;
+			previousDataObject = {} as RanStatusFileStructure;
 		} else {
 			console.log("Unexpected error ", err);
 			process.exit(1);
 		}
 	}
 
-	const updatedDataObject: ranStatusFileStructute = {
+	const updatedDataObject: RanStatusFileStructure = {
 		...previousDataObject,
 		...newObject,
 	};
@@ -375,9 +374,9 @@ export function lastStateWriter(
 }
 
 export function lastStateReader(
-	keyName: lastStateKeyNames,
+	keyName: keyof LastStateType,
 ): string | number {
-	let dataObject: ranStatusFileStructute;
+	let dataObject: RanStatusFileStructure;
 	try {
 		dataObject = JSON.parse(
 			readFileSync(constants.ranStatusFile, { encoding: "utf8" }),

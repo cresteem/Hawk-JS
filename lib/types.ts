@@ -13,23 +13,23 @@ export interface ConfigurationOptions {
 	domainName: string;
 	sitemapPath: string;
 	robotPath: string;
-	secretFile: string;
-
 	/* Private property */
 	ftpCredential: ftpCredentialOptions;
+	serviceAccountFile: string;
 }
 
-export interface RouteMetaOptions {
+export interface RouteMeta {
 	route: string;
 	modifiedTime: string;
 }
 
-export type lastStateKeyNames =
-	| "lastRunTimeStamp"
-	| "secretKey"
-	| "submittedSitemap";
+export interface LastStateType {
+	lastRunTimeStamp: number;
+	secretKey: string;
+	submittedSitemap: string;
+}
 
-export interface ranStatusFileStructute {
+export interface RanStatusFileStructure {
 	lastRunTimeStamp: number;
 	secretKey: string;
 	submittedSitemap: string;
@@ -37,30 +37,31 @@ export interface ranStatusFileStructute {
 
 interface constantsStructure {
 	ranStatusFile: string;
-	serviceAccountFile: string;
 }
 
 export const constants: constantsStructure = {
 	ranStatusFile: join(process.cwd(), ".hawk.lrs"),
-	serviceAccountFile: join(process.cwd(), "gserv.json"),
 };
 
-interface responseBodyError {
+interface ResponseBodyError {
 	code: string;
 	message: string;
 	status: string;
 }
-interface responseBodyStructure {
-	error: responseBodyError;
-}
-export type googleIndexStatusCode = 200 | 400 | 403 | 429 | 204;
-export interface googleIndexResponseOptions {
-	url: string;
-	body: responseBodyStructure;
-	statusCode: googleIndexStatusCode;
+
+interface ResponseBodyStructure {
+	error: ResponseBodyError;
 }
 
-export interface sitemapMetaOptions {
+export type GoogleIndexStatusCode = 200 | 400 | 403 | 429 | 204;
+
+export interface GoogleIndexResponseOptions {
+	url: string;
+	body: ResponseBodyStructure;
+	statusCode: GoogleIndexStatusCode;
+}
+
+export interface SitemapMeta {
 	pageCounts: number;
 	lastSubmitted: string;
 	lastDownloaded: string;
@@ -69,13 +70,13 @@ export interface sitemapMetaOptions {
 	errors: number;
 }
 
-export type suppotredStrategies =
+export type SuppotredStrategies =
 	| "GIndex" /* Google Indexing API - Only for job posting & live broadcasting video content page*/
 	| "GWebmaster" /* General web sitemap submission */
 	| "GWebmaster2" /* General web sitemap submission with status check-back */
 	| "IndexNow"; /* Index now api only for Bing, Yahoo, Yandex, Yep etc */
 
-export interface secretObjectStructure {
+export interface SecretObjectType {
 	host: string;
 	user: string;
 	pass: string;

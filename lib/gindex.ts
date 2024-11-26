@@ -2,11 +2,10 @@ import { google } from "googleapis";
 import { request } from "https";
 
 import {
-	constants,
-	googleIndexResponseOptions,
-	googleIndexStatusCode,
-	sitemapMetaOptions,
-} from "./options";
+	GoogleIndexResponseOptions,
+	GoogleIndexStatusCode,
+	SitemapMeta,
+} from "./types";
 
 import config from "../configLoader";
 import {
@@ -14,12 +13,12 @@ import {
 	lastStateReader,
 	lastStateWriter,
 } from "./utils";
-const { domainName, sitemapPath } = config;
+const { domainName, sitemapPath, serviceAccountFile } = config();
 
 function _callIndexingAPI(
 	accessToken: string,
 	updatedRoute: string,
-): Promise<googleIndexResponseOptions> {
+): Promise<GoogleIndexResponseOptions> {
 	return new Promise((resolve, reject) => {
 		const postData: string = JSON.stringify({
 			url: updatedRoute,
@@ -42,10 +41,10 @@ function _callIndexingAPI(
 				responseBody += data;
 			});
 			res.on("end", () => {
-				const response: googleIndexResponseOptions = {
+				const response: GoogleIndexResponseOptions = {
 					url: updatedRoute,
 					body: JSON.parse(responseBody),
-					statusCode: (res.statusCode ?? 0) as googleIndexStatusCode,
+					statusCode: (res.statusCode ?? 0) as GoogleIndexStatusCode,
 				};
 				resolve(response);
 			});
@@ -61,10 +60,10 @@ function _callIndexingAPI(
 }
 
 export async function googleIndex(stateChangedRoutes: string[]) {
-	const callPromises: Promise<googleIndexResponseOptions>[] = [];
+	const callPromises: Promise<GoogleIndexResponseOptions>[] = [];
 
 	const jwtClient = new google.auth.JWT({
-		keyFile: constants.serviceAccountFile,
+		keyFile: serviceAccountFile,
 		scopes: ["https://www.googleapis.com/auth/indexing"],
 	});
 
@@ -84,14 +83,14 @@ export async function googleIndex(stateChangedRoutes: string[]) {
 			);
 		});
 
-		const apiResponses: googleIndexResponseOptions[] = await Promise.all(
+		const apiResponses: GoogleIndexResponseOptions[] = await Promise.all(
 			callPromises,
 		);
 
 		/* Grouping api responses */
 		const statusGroups: Record<
-			googleIndexStatusCode,
-			googleIndexResponseOptions[]
+			GoogleIndexStatusCode,
+			GoogleIndexResponseOptions[]
 		> = {
 			204: [], //dummy
 			400: [],
@@ -166,7 +165,7 @@ export async function googleIndex(stateChangedRoutes: string[]) {
 }
 
 function _sitemapGAPIResponseHandler(
-	response: googleIndexResponseOptions,
+	response: GoogleIndexResponseOptions,
 ) {
 	switch (response.statusCode) {
 		case 200:
@@ -194,7 +193,7 @@ export function submitSitemapGAPI(): Promise<void> {
 	const sitemapURL: string = `https://${domainName}/${sitemapPath}`;
 
 	const jwtClient = new google.auth.JWT({
-		keyFile: constants.serviceAccountFile,
+		keyFile: serviceAccountFile,
 		scopes: ["https://www.googleapis.com/auth/webmasters"],
 	});
 
@@ -236,10 +235,10 @@ export function submitSitemapGAPI(): Promise<void> {
 				});
 
 				res.on("end", () => {
-					const response: googleIndexResponseOptions = {
+					const response: GoogleIndexResponseOptions = {
 						url: sitemapURL,
 						body: responseBody ? JSON.parse(responseBody) : "",
-						statusCode: res.statusCode as googleIndexStatusCode,
+						statusCode: res.statusCode as GoogleIndexStatusCode,
 					};
 					_sitemapGAPIResponseHandler(response);
 
@@ -258,7 +257,7 @@ export function submitSitemapGAPI(): Promise<void> {
 	});
 }
 
-export function lastSubmissionStatusGAPI(): Promise<sitemapMetaOptions> {
+export function lastSubmissionStatusGAPI(): Promise<SitemapMeta> {
 	const lastSubmittedURL: string = lastStateReader(
 		"submittedSitemap",
 	) as string;
@@ -269,7 +268,7 @@ export function lastSubmissionStatusGAPI(): Promise<sitemapMetaOptions> {
 	}
 
 	const jwtClient = new google.auth.JWT({
-		keyFile: constants.serviceAccountFile,
+		keyFile: serviceAccountFile,
 		scopes: ["https://www.googleapis.com/auth/webmasters"],
 	});
 
@@ -304,7 +303,7 @@ export function lastSubmissionStatusGAPI(): Promise<sitemapMetaOptions> {
 				reject("😕 Last submittion status not found");
 			}
 
-			const sitemapMeta: sitemapMetaOptions = {
+			const sitemapMeta: SitemapMeta = {
 				pageCounts: targetedMeta?.contents
 					? parseInt(targetedMeta?.contents[0].submitted ?? "0")
 					: 0,

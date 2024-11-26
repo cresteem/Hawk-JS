@@ -1,13 +1,13 @@
 {
 	"name": "@cresteem/hawk-js",
-	"displayName": "Hawk JS",
+	"displayName": "Hawk.js",
 	"version": "1.0.8",
-	"description": "Hawk JS is an advanced sitemap generator and deployer designed to enhance your website's search engine optimization (SEO). It automates the creation of comprehensive sitemaps and simplifies submission to major search engines like Google, Bing, Yahoo, Yandex, and more, ensuring your site is indexed accurately and quickly.",
+	"description": "Hawk.js is an advanced sitemap generator and deployer designed to enhance your website's search engine optimization (SEO). It automates the creation of comprehensive sitemaps and simplifies submission to major search engines like Google, Bing, Yahoo, Yandex, and more, ensuring your site is indexed accurately and quickly.",
 	"main": "./dist/hawk.js",
 	"exports": {
+		"types": "./dist/types/hawk.d.ts",
 		"import": "./dist/hawk.js",
-		"require": "./dist/hawk.js",
-		"types": "./dist/types/hawk.d.ts"
+		"require": "./dist/hawk.js"
 	},
 	"files": [
 		"dist"
@@ -36,7 +36,7 @@
 	"license": "Apache-2.0",
 	"private": false,
 	"scripts": {
-		"dev": "rimraf dist && tsc -p dev/tscdev.json",
+		"dev": "rimraf dist && tsc -p tscdev.json",
 		"test": "jest",
 		"build": "cls && eslint && rimraf dist && tsc -p tsconfig.json",
 		"watch": "tsc --watch",
@@ -62,7 +62,7 @@
 		"content management",
 		"digital marketing",
 		"cresteem",
-		"hawk js"
+		"Hawk.js"
 	],
 	"dependencies": {
 		"basic-ftp": "5.0.5",

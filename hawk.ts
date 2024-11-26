@@ -1,10 +1,10 @@
-import { suppotredStrategies, sitemapMetaOptions } from "./lib/options";
 import {
 	googleIndex,
 	lastSubmissionStatusGAPI,
 	submitSitemapGAPI,
 } from "./lib/gindex";
 import { indexNow } from "./lib/indexnow";
+import { SitemapMeta, SuppotredStrategies } from "./lib/types";
 import {
 	getLastRunTimeStamp,
 	getUpdatedRoutesPath,
@@ -39,14 +39,13 @@ export const hawkStrategy = {
 		await submitSitemapGAPI();
 
 		/* check status */
-		const statusMeta: sitemapMetaOptions =
-			await lastSubmissionStatusGAPI();
+		const statusMeta: SitemapMeta = await lastSubmissionStatusGAPI();
 		console.log(statusMeta);
 	},
 };
 
 export async function hawk(
-	strategy: suppotredStrategies,
+	strategy: SuppotredStrategies,
 	lookupPatterns: string[] = [],
 	ignorePattern: string[] = [],
 	prettify: boolean = true,
@@ -89,7 +88,7 @@ async function _makeSitemapRobot(
 }
 
 async function strategyHandler(
-	strategy: suppotredStrategies,
+	strategy: SuppotredStrategies,
 	stateChangedRoutes: string[],
 	prettify: boolean = true,
 	lookupPatterns: string[] = [],

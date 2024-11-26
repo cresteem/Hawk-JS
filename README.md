@@ -1,8 +1,8 @@
 <div align="center">
 
-# Hawk JS - Advanced Sitemap Generator and Deployer for SEO
+# Hawk.js - Advanced Sitemap Generator and Deployer for SEO
 
-<p id="intro">Hawk JS is an advanced sitemap generator and deployer designed to enhance your website's search engine optimization (SEO). It automates the creation of comprehensive sitemaps and simplifies submission to major search engines like Google, Bing, Yahoo, Yandex, and more, ensuring your site is indexed accurately and quickly.</p>
+<p id="intro">Hawk.js is an advanced sitemap generator and deployer designed to enhance your website's search engine optimization (SEO). It automates the creation of comprehensive sitemaps and simplifies submission to major search engines like Google, Bing, Yahoo, Yandex, and more, ensuring your site is indexed accurately and quickly.</p>
 
 ### Supported Platforms
 
@@ -153,12 +153,12 @@ Thank you for being part of this journey. Your support means the world to us. �
 ## Installation - Step-by-Step Guide 🪜
 Follow Below link:
 
-[Getting Started with Hawk JS](https://hawkjs.cresteem.com/getting-started-with-hawk-js)
+[Getting Started with Hawk.js](https://hawkjs.cresteem.com/getting-started-with-hawk-js)
 
 
 ## Usage
 
-Everything from top to bottom of Hawk JS available here - https://hawkjs.cresteem.com/
+Everything from top to bottom of Hawk.js available here - https://hawkjs.cresteem.com/
 
 ## License ©️
 
@@ -186,7 +186,7 @@ For any questions, please reach out via connect@cresteem.com
 
 ## Credits 🙏🏻
 
-Hawk JS is developed and maintained by [DARSAN](https://darsan.in/) at [CRESTEEM](https://cresteem.com/).
+Hawk.js is developed and maintained by [DARSAN](https://darsan.in/) at [CRESTEEM](https://cresteem.com/).
 
 ---
 
@@ -269,5 +269,5 @@ Hawk JS is developed and maintained by [DARSAN](https://darsan.in/) at [CRESTEEM
 <li>content management</li>
 <li>digital marketing</li>
 <li>cresteem</li>
-<li>hawk js</li>
+<li>Hawk.js</li>
 </ul>
