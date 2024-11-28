@@ -109,3 +109,5 @@ export class Hawk {
 		return stateChangedRoutes;
 	}
 }
+
+export type hawkJsOptions = ConfigurationOptions;

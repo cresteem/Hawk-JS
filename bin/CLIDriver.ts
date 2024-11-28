@@ -3,6 +3,8 @@
 import { Command } from "commander";
 import { Hawk } from "../lib/core";
 import { SuppotredStrategies } from "../lib/types";
+import iconAssociator from "./iconAssociator";
+import initConfig from "./initConfig";
 
 const program = new Command();
 const hawkInstance = new Hawk();
@@ -90,6 +92,21 @@ async function main() {
 				...program.opts(),
 				...options,
 			});
+		});
+
+	// 'init' command
+	program
+		.command("init")
+		.description("Initialize Hawk.js configurations")
+		.action(async () => {
+			try {
+				await iconAssociator();
+				initConfig();
+				console.log("🚀 Hawk.js configuration initialised.");
+			} catch (err) {
+				console.error("⚠️ Error initializing configurations", err);
+				process.exit(1);
+			}
 		});
 
 	// Default command (no subcommand provided)
