@@ -1,167 +1,306 @@
 import { google } from "googleapis";
-import { request } from "https";
 
+import { type Hawk } from "./core";
 import {
 	GoogleIndexResponseOptions,
 	GoogleIndexStatusCode,
+	LastStateType,
+	RanStatusFileStructure,
 	SitemapMeta,
 } from "./types";
 
-import config from "../configLoader";
-import {
-	convertTimeinCTZone,
-	lastStateReader,
-	lastStateWriter,
-} from "./utils";
-const { domainName, sitemapPath, serviceAccountFile } = config();
+export default class GoogleIndexing {
+	#serviceAccountFile: string;
+	#sitemapPath: string;
+	#domainName: string;
 
-function _callIndexingAPI(
-	accessToken: string,
-	updatedRoute: string,
-): Promise<GoogleIndexResponseOptions> {
-	return new Promise((resolve, reject) => {
-		const postData: string = JSON.stringify({
-			url: updatedRoute,
-			type: "URL_UPDATED",
+	#lastStateReader: (keyName: keyof LastStateType) => string | number;
+	#lastStateWriter: (newObject: Partial<RanStatusFileStructure>) => void;
+	#convertTimeinCTZone: (ISOTime: string) => string;
+
+	constructor(hawkInstance: Hawk) {
+		const { serviceAccountFile, sitemapPath, domainName } =
+			hawkInstance.configurations;
+
+		this.#serviceAccountFile = serviceAccountFile;
+		this.#sitemapPath = sitemapPath;
+		this.#domainName = domainName;
+
+		const { lastStateReader, lastStateWriter, convertTimeinCTZone } =
+			hawkInstance.utils;
+
+		this.#lastStateReader = lastStateReader;
+		this.#lastStateWriter = lastStateWriter;
+		this.#convertTimeinCTZone = convertTimeinCTZone;
+	}
+
+	async #_callIndexingAPI(
+		accessToken: string,
+		updatedRoute: string,
+	): Promise<GoogleIndexResponseOptions> {
+		try {
+			const postData = {
+				url: updatedRoute,
+				type: "URL_UPDATED",
+			};
+
+			const response = await fetch(
+				"https://indexing.googleapis.com/v3/urlNotifications:publish",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify(postData),
+				},
+			);
+
+			const responseBody = await response.json();
+
+			return {
+				url: updatedRoute,
+				body: responseBody,
+				statusCode: response.status as GoogleIndexStatusCode,
+			};
+		} catch (error) {
+			throw new Error(`Request error: ${error}`);
+		}
+	}
+
+	async jobMediaIndex(stateChangedRoutes: string[]) {
+		const callPromises: Promise<GoogleIndexResponseOptions>[] = [];
+
+		const jwtClient = new google.auth.JWT({
+			keyFile: this.#serviceAccountFile,
+			scopes: ["https://www.googleapis.com/auth/indexing"],
 		});
 
-		const options: Record<string, string | Record<string, string>> = {
-			hostname: "indexing.googleapis.com",
-			path: "/v3/urlNotifications:publish",
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${accessToken}`,
-			},
-		};
+		jwtClient.authorize(async (err, tokens): Promise<void> => {
+			if (err) {
+				console.log(
+					"Error while authorizing for indexing API scope " + err,
+				);
+				process.exit(1);
+			}
 
-		const req = request(options, (res) => {
-			let responseBody = "";
-			res.on("data", (data) => {
-				responseBody += data;
+			const accessToken: string = tokens?.access_token || "";
+
+			stateChangedRoutes.forEach((updatedRoute) => {
+				callPromises.push(
+					this.#_callIndexingAPI(accessToken, updatedRoute),
+				);
 			});
-			res.on("end", () => {
-				const response: GoogleIndexResponseOptions = {
-					url: updatedRoute,
-					body: JSON.parse(responseBody),
-					statusCode: (res.statusCode ?? 0) as GoogleIndexStatusCode,
-				};
-				resolve(response);
+
+			const apiResponses: GoogleIndexResponseOptions[] = await Promise.all(
+				callPromises,
+			);
+
+			/* Grouping api responses */
+			const statusGroups: Record<
+				GoogleIndexStatusCode,
+				GoogleIndexResponseOptions[]
+			> = {
+				204: [], //dummy
+				400: [],
+				403: [],
+				429: [],
+				200: [],
+			};
+
+			apiResponses.forEach((response) => {
+				if ([400, 403, 429, 200].includes(response.statusCode)) {
+					statusGroups[response.statusCode].push(response);
+				}
+			});
+
+			if (statusGroups[200].length > 0) {
+				console.log("\n✅ Successfully reported routes:");
+
+				console.log(
+					statusGroups[200].map((response) => response.url).join("\n"),
+				);
+			}
+
+			/* Error reports */
+			if (
+				statusGroups[400].length > 0 ||
+				statusGroups[403].length > 0 ||
+				statusGroups[429].length > 0
+			) {
+				const failedResponseCount =
+					stateChangedRoutes.length - statusGroups[200].length;
+
+				console.log(
+					`\nGoogle response: ⚠️\t${failedResponseCount} of ${stateChangedRoutes.length} failed`,
+				);
+
+				console.log("\n###Google Indexing error reports:⬇️");
+				if (statusGroups[400].length > 0) {
+					console.log("\n👎🏻 BAD_REQUEST");
+					console.log("Affected Routes:");
+					statusGroups[400].forEach((response) => {
+						console.log(
+							response.url,
+							"\t|\t",
+							"Reason: " + response.body.error.message,
+						);
+					});
+				}
+
+				if (statusGroups[403].length > 0) {
+					console.log("\n🚫 FORBIDDEN - Ownership verification failed");
+					console.log("Affected Routes:");
+					console.log(
+						statusGroups[403].map((response) => response.url).join("\n"),
+					);
+				}
+
+				if (statusGroups[429].length > 0) {
+					console.log(
+						"\n🚨 TOO_MANY_REQUESTS - Your quota is exceeding for Indexing API calls",
+					);
+					console.log("Affected Routes:");
+					console.log(
+						statusGroups[429].map((response) => response.url).join("\n"),
+					);
+				}
+			}
+		});
+	}
+
+	webmasterIndex(): Promise<void> {
+		const siteUrl: string = `sc-domain:${this.#domainName}`;
+		const sitemapURL: string = `https://${this.#domainName}/${
+			this.#sitemapPath
+		}`;
+
+		const jwtClient = new google.auth.JWT({
+			keyFile: this.#serviceAccountFile,
+			scopes: ["https://www.googleapis.com/auth/webmasters"],
+		});
+
+		return new Promise((resolve, reject) => {
+			jwtClient.authorize(async (err, tokens): Promise<void> => {
+				if (err) {
+					console.log(
+						"Error while authorizing for webmasters API scope " + err,
+					);
+					process.exit(1);
+				}
+
+				const accessToken: string = tokens?.access_token || "";
+
+				if (!Boolean(accessToken)) {
+					console.log("Authorization done but access token not found.");
+					process.exit(1);
+				}
+
+				try {
+					const apiUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(
+						siteUrl,
+					)}/sitemaps/${encodeURIComponent(sitemapURL)}`;
+
+					const response = await fetch(apiUrl, {
+						method: "PUT",
+						headers: {
+							Authorization: `Bearer ${accessToken}`,
+							"Content-Type": "application/json",
+						},
+					});
+
+					const responseBody = response.ok ? await response.json() : null;
+
+					const sitemapAPIResponse: GoogleIndexResponseOptions = {
+						url: sitemapURL,
+						body: responseBody || "",
+						statusCode: response.status as GoogleIndexStatusCode,
+					};
+
+					// Handle the sitemap response (your custom handler)
+					_sitemapGAPIResponseHandler(sitemapAPIResponse);
+
+					// Update the state with the submitted sitemap URL
+					this.#lastStateWriter({
+						submittedSitemap: sitemapAPIResponse.url,
+					});
+
+					resolve();
+				} catch (error) {
+					reject(`Request error: ${error}`);
+				}
 			});
 		});
+	}
 
-		req.on("error", (e) => {
-			reject(`Request error: ${e.message}`);
-		});
+	webmasterFeedback(): Promise<SitemapMeta> {
+		const lastSubmittedURL: string = this.#lastStateReader(
+			"submittedSitemap",
+		) as string;
 
-		req.write(postData);
-		req.end();
-	});
-}
-
-export async function googleIndex(stateChangedRoutes: string[]) {
-	const callPromises: Promise<GoogleIndexResponseOptions>[] = [];
-
-	const jwtClient = new google.auth.JWT({
-		keyFile: serviceAccountFile,
-		scopes: ["https://www.googleapis.com/auth/indexing"],
-	});
-
-	jwtClient.authorize(async (err, tokens): Promise<void> => {
-		if (err) {
-			console.log("Error while authorizing for indexing API scope " + err);
+		if (!lastSubmittedURL) {
+			console.log("No record of submission");
 			process.exit(1);
 		}
 
-		const accessToken: string = tokens?.access_token ?? "";
-
-		stateChangedRoutes.forEach((updatedRoute) => {
-			callPromises.push(
-				(() => {
-					return _callIndexingAPI(accessToken, updatedRoute);
-				})(),
-			);
+		const jwtClient = new google.auth.JWT({
+			keyFile: this.#serviceAccountFile,
+			scopes: ["https://www.googleapis.com/auth/webmasters"],
 		});
 
-		const apiResponses: GoogleIndexResponseOptions[] = await Promise.all(
-			callPromises,
-		);
-
-		/* Grouping api responses */
-		const statusGroups: Record<
-			GoogleIndexStatusCode,
-			GoogleIndexResponseOptions[]
-		> = {
-			204: [], //dummy
-			400: [],
-			403: [],
-			429: [],
-			200: [],
-		};
-
-		apiResponses.forEach((response) => {
-			if (response.statusCode === 400) {
-				statusGroups[400].push(response);
-			} else if (response.statusCode === 403) {
-				statusGroups[403].push(response);
-			} else if (response.statusCode === 429) {
-				statusGroups[429].push(response);
-			} else if (response.statusCode === 200) {
-				statusGroups[200].push(response);
-			}
-		});
-
-		console.log(
-			`\nGoogle response: ⚠️\t${
-				stateChangedRoutes.length - statusGroups[200].length
-			}/${stateChangedRoutes.length} failed`,
-		);
-
-		if (statusGroups[200].length > 0) {
-			console.log("\n✅ Successful Routes:");
-			statusGroups[200].forEach((response) => {
-				console.log(response.url);
-			});
-		}
-
-		/* Error reports */
-		if (
-			statusGroups[400].length > 0 ||
-			statusGroups[403].length > 0 ||
-			statusGroups[429].length > 0
-		) {
-			console.log("\n###Google Indexing error reports:⬇️");
-			if (statusGroups[400].length > 0) {
-				console.log("\n👎🏻 BAD_REQUEST");
-				console.log("Affected Routes:");
-				statusGroups[400].forEach((response) => {
-					console.log(
-						response.url,
-						"\t|\t",
-						"Reason: " + response.body.error.message,
+		return new Promise((resolve, reject) => {
+			jwtClient.authorize(async (err, _tokens) => {
+				if (err) {
+					reject(
+						"Authorization error while checking last submission status " +
+							err,
 					);
-				});
-			}
+				}
 
-			if (statusGroups[403].length > 0) {
-				console.log("\n🚫 FORBIDDEN - Ownership verification failed");
-				console.log("Affected Routes:");
-				statusGroups[403].forEach((response) => {
-					console.log(response.url);
+				const searchConsole = google.webmasters({
+					version: "v3",
+					auth: jwtClient,
 				});
-			}
 
-			if (statusGroups[429].length > 0) {
-				console.log(
-					"\n🚨 TOO_MANY_REQUESTS - Your quota is exceeding for Indexing API calls",
+				const res = await searchConsole.sitemaps.list({
+					siteUrl: `sc-domain:${this.#domainName}`,
+				});
+
+				const targetedMeta = res.data.sitemap?.find(
+					(sitemapMeta) => sitemapMeta.path === lastSubmittedURL,
 				);
-				console.log("Affected Routes:");
-				statusGroups[429].forEach((response) => {
-					console.log(response.url);
-				});
-			}
-		}
-	});
+
+				if (targetedMeta) {
+					//Delete unwanted properties
+					delete targetedMeta.path;
+					delete targetedMeta.isSitemapsIndex;
+					delete targetedMeta.type;
+				} else {
+					reject("😕 Last submittion status not found");
+				}
+
+				const sitemapMeta: SitemapMeta = {
+					pageCounts: targetedMeta?.contents
+						? parseInt(targetedMeta?.contents[0]?.submitted ?? "0")
+						: 0,
+
+					lastSubmitted: this.#convertTimeinCTZone(
+						targetedMeta?.lastSubmitted ?? "",
+					),
+
+					lastDownloaded: this.#convertTimeinCTZone(
+						targetedMeta?.lastDownloaded ?? "",
+					),
+
+					isPending: targetedMeta?.isPending ?? false,
+					warnings: parseInt(targetedMeta?.warnings ?? "0"),
+					errors: parseInt(targetedMeta?.errors ?? "0"),
+				};
+
+				resolve(sitemapMeta);
+			});
+		});
+	}
 }
 
 function _sitemapGAPIResponseHandler(
@@ -186,142 +325,4 @@ function _sitemapGAPIResponseHandler(
 			console.log("Error message: ", response.body?.error?.message ?? "");
 			console.log("Failed link: ", response.url);
 	}
-}
-
-export function submitSitemapGAPI(): Promise<void> {
-	const siteUrl: string = `sc-domain:${domainName}`;
-	const sitemapURL: string = `https://${domainName}/${sitemapPath}`;
-
-	const jwtClient = new google.auth.JWT({
-		keyFile: serviceAccountFile,
-		scopes: ["https://www.googleapis.com/auth/webmasters"],
-	});
-
-	return new Promise((resolve, reject) => {
-		jwtClient.authorize(async (err, tokens): Promise<void> => {
-			if (err) {
-				console.log(
-					"Error while authorizing for webmasters API scope " + err,
-				);
-				process.exit(1);
-			}
-
-			const accessToken: string = tokens?.access_token ?? "";
-
-			if (!!!accessToken) {
-				console.log("Authorization done but access token not found.");
-				process.exit(1);
-			}
-
-			const options: Record<string, any> = {
-				hostname: "www.googleapis.com",
-
-				path: `/webmasters/v3/sites/${encodeURIComponent(
-					siteUrl,
-				)}/sitemaps/${encodeURIComponent(sitemapURL)}`,
-
-				method: "PUT",
-
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					"Content-Type": "application/json",
-				},
-			};
-
-			const req = request(options, (res) => {
-				let responseBody = "";
-				res.on("data", (data) => {
-					responseBody += data;
-				});
-
-				res.on("end", () => {
-					const response: GoogleIndexResponseOptions = {
-						url: sitemapURL,
-						body: responseBody ? JSON.parse(responseBody) : "",
-						statusCode: res.statusCode as GoogleIndexStatusCode,
-					};
-					_sitemapGAPIResponseHandler(response);
-
-					lastStateWriter({ submittedSitemap: response.url });
-
-					resolve();
-				});
-			});
-
-			req.on("error", (e) => {
-				reject(`Request error: ${e.message}`);
-			});
-
-			req.end();
-		});
-	});
-}
-
-export function lastSubmissionStatusGAPI(): Promise<SitemapMeta> {
-	const lastSubmittedURL: string = lastStateReader(
-		"submittedSitemap",
-	) as string;
-
-	if (!lastSubmittedURL) {
-		console.log("Record of submission not found");
-		process.exit(1);
-	}
-
-	const jwtClient = new google.auth.JWT({
-		keyFile: serviceAccountFile,
-		scopes: ["https://www.googleapis.com/auth/webmasters"],
-	});
-
-	return new Promise((resolve, reject) => {
-		jwtClient.authorize(async (err, _tokens) => {
-			if (err) {
-				reject(
-					"Authorization error while checking last submission status " +
-						err,
-				);
-			}
-
-			const searchConsole = google.webmasters({
-				version: "v3",
-				auth: jwtClient,
-			});
-
-			const res = await searchConsole.sitemaps.list({
-				siteUrl: `sc-domain:${domainName}`,
-			});
-
-			const targetedMeta = res.data.sitemap?.find(
-				(sitemapMeta) => sitemapMeta.path === lastSubmittedURL,
-			);
-
-			if (targetedMeta) {
-				//Delete unwanted properties
-				delete targetedMeta.path;
-				delete targetedMeta.isSitemapsIndex;
-				delete targetedMeta.type;
-			} else {
-				reject("😕 Last submittion status not found");
-			}
-
-			const sitemapMeta: SitemapMeta = {
-				pageCounts: targetedMeta?.contents
-					? parseInt(targetedMeta?.contents[0].submitted ?? "0")
-					: 0,
-
-				lastSubmitted: convertTimeinCTZone(
-					targetedMeta?.lastSubmitted ?? "",
-				),
-
-				lastDownloaded: convertTimeinCTZone(
-					targetedMeta?.lastDownloaded ?? "",
-				),
-
-				isPending: targetedMeta?.isPending ?? false,
-				warnings: parseInt(targetedMeta?.warnings ?? "0"),
-				errors: parseInt(targetedMeta?.errors ?? "0"),
-			};
-
-			resolve(sitemapMeta);
-		});
-	});
 }

@@ -1,158 +1,164 @@
 import { Client as FTP } from "basic-ftp";
-import { randomBytes } from "crypto";
-import { readFileSync, rmSync, writeFileSync } from "fs";
-import { request } from "https";
-import configurations from "../configLoader";
-import { constants, RanStatusFileStructure } from "./types";
-const { domainName, ftpCredential } = configurations();
+import { randomBytes } from "node:crypto";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { type Hawk } from "./core";
+import {
+	constants,
+	ftpCredentialOptions,
+	RanStatusFileStructure,
+} from "./types";
 
-function _makeSecretKey(): string {
-	/* Make 32 char hex key */
-	return randomBytes(16).toString("hex");
-}
+export default class IndexNow {
+	#ftpCredential: ftpCredentialOptions;
+	#domainName: string;
 
-async function _secretKeyManager(): Promise<string> {
-	let ranStatusObject: RanStatusFileStructure =
-		{} as RanStatusFileStructure;
+	constructor(hawkInstance: Hawk) {
+		const { ftpCredential, domainName } = hawkInstance.configurations;
 
-	try {
-		ranStatusObject = JSON.parse(
-			readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
+		this.#ftpCredential = ftpCredential;
+		this.#domainName = domainName;
+	}
+
+	async trigger(stateChangedRoutes: string[]): Promise<void> {
+		const secretKey: Awaited<string> = await this.#_secretKeyManager();
+
+		/*Call Index now API */
+		const apiResponse: Awaited<number> = await this.#_callAPI(
+			stateChangedRoutes,
+			secretKey,
 		);
-	} catch (err: any) {
-		if (err.code === "ENOENT") {
-			writeFileSync(constants.ranStatusFile, JSON.stringify({}, null, 2), {
-				encoding: "utf8",
-			});
+
+		let response: string;
+		switch (apiResponse) {
+			case 200:
+				response = "✅\tURLs submitted and key validated.";
+				break;
+			case 202:
+				response = "⚠️\tURLs submitted but key validation pending.";
+				break;
+			case 400:
+				response = "👎🏻\tBad request - Invalid format.";
+				break;
+			case 403:
+				response =
+					"🔐\tForbidden - Key not valid (key not found, file found but key not in the file).";
+				break;
+			case 422:
+				response =
+					"⛔\tUnprocessable Entity - URLs which don’t belong to your host or the key is not matching the schema in the protocol.";
+				break;
+			case 429:
+				response = "🚨\tToo Many Requests.";
+				break;
+			default:
+				response = "😕\tUnexpected response.";
+				break;
 		}
+		console.log("\nIndexNow response: " + response);
 	}
 
-	const oldSecretKey: string = ranStatusObject.secretKey ?? "";
+	#_makeSecretKey(): string {
+		/* Make 32 char hex key */
+		return randomBytes(16).toString("hex");
+	}
 
-	/* This block is meant to execute if there is no key available */
-	if (!!!oldSecretKey) {
-		const secretKey: string = _makeSecretKey();
+	async #_secretKeyManager(): Promise<string> {
+		let ranStatusObject: RanStatusFileStructure =
+			{} as RanStatusFileStructure;
 
-		const tempkeyfile: string = ".hawktemp";
-		writeFileSync(tempkeyfile, secretKey);
-
-		/*set secretkey as file name and store in root */
-		const keyDestination: string = `/${secretKey}.txt`;
-
-		/* Upload to ftp server */
-		const ftp: FTP = new FTP();
 		try {
-			await ftp.access({
-				user: ftpCredential.username,
-				password: ftpCredential.password,
-				host: ftpCredential.hostname,
-			});
-			await ftp.uploadFrom(tempkeyfile, keyDestination);
-			console.log("KeyFile Uploaded to server 🔑👍🏻");
-			ftp.close();
-
-			/* Removing temporary file */
-			rmSync(tempkeyfile);
-
-			/* keeping secret key*/
-			let newObject: RanStatusFileStructure = { ...ranStatusObject };
-			newObject.secretKey = secretKey;
-			writeFileSync(
-				constants.ranStatusFile,
-				JSON.stringify(newObject, null, 2),
+			ranStatusObject = JSON.parse(
+				readFileSync(constants.ranStatusFile, { encoding: "utf8" }),
 			);
-
-			return secretKey;
-		} catch (err) {
-			console.log("Error uploading keyfile: ", err);
-
-			/* Removing temporary file */
-			rmSync(tempkeyfile);
-
-			process.exit(1);
+		} catch (err: any) {
+			if (err.code === "ENOENT") {
+				writeFileSync(
+					constants.ranStatusFile,
+					JSON.stringify({}, null, 2),
+					{
+						encoding: "utf8",
+					},
+				);
+			}
 		}
-	} else {
-		return oldSecretKey;
+
+		const oldSecretKey: string = ranStatusObject.secretKey ?? "";
+
+		/* This block is meant to execute if there is no key available */
+		if (!Boolean(oldSecretKey)) {
+			const secretKey: string = this.#_makeSecretKey();
+
+			const tempkeyfile: string = ".hawktemp";
+			writeFileSync(tempkeyfile, secretKey);
+
+			/*set secretkey as file name and store in root */
+			const keyDestination: string = `/${secretKey}.txt`;
+
+			/* Upload to ftp server */
+			const ftp: FTP = new FTP();
+			try {
+				await ftp.access({
+					user: this.#ftpCredential.username || process.env.FTPUSER,
+					password: this.#ftpCredential.password || process.env.FTPPASS,
+					host: this.#ftpCredential.hostname || process.env.FTPHOST,
+				});
+
+				await ftp.uploadFrom(tempkeyfile, keyDestination);
+
+				console.log("KeyFile Uploaded to server 🔑👍🏻");
+				ftp.close();
+
+				/* Removing temporary file */
+				rmSync(tempkeyfile, { recursive: true, force: true });
+
+				/* keeping secret key*/
+				let newObject: RanStatusFileStructure = { ...ranStatusObject };
+				newObject.secretKey = secretKey;
+
+				writeFileSync(
+					constants.ranStatusFile,
+					JSON.stringify(newObject, null, 2),
+				);
+
+				return secretKey;
+			} catch (err) {
+				console.log("Error uploading keyfile: ", err);
+
+				/* Removing temporary file */
+				rmSync(tempkeyfile, { recursive: true, force: true });
+
+				process.exit(1);
+			}
+		} else {
+			return oldSecretKey;
+		}
 	}
-}
 
-function _callAPI(
-	updatedRoutes: string[],
-	secretkey: string,
-): Promise<number> {
-	const data: string = JSON.stringify({
-		host: domainName,
-		key: secretkey,
-		keyLocation: `https://${domainName}/${secretkey}.txt`,
-		urlList: updatedRoutes,
-	});
+	async #_callAPI(
+		updatedRoutes: string[],
+		secretkey: string,
+	): Promise<number> {
+		const data = JSON.stringify({
+			host: this.#domainName,
+			key: secretkey,
+			keyLocation: `https://${this.#domainName}/${secretkey}.txt`,
+			urlList: updatedRoutes,
+		});
 
-	const options: Record<string, any> = {
-		hostname: "api.indexnow.org",
-		port: 443,
-		path: "/IndexNow",
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json; charset=utf-8",
-			"Content-Length": Buffer.byteLength(data, "utf8"),
-		},
-	};
-
-	return new Promise((resolve: Function, reject: Function) => {
-		const req = request(options, (res) => {
-			res.on("data", () => {});
-			res.on("end", () => {
-				resolve(res.statusCode);
+		try {
+			const response = await fetch("https://api.indexnow.org/IndexNow", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json; charset=utf-8",
+				},
+				body: data,
 			});
-		});
 
-		req.on("error", (e) => {
-			const errorMsg: string = "Error while making api request";
-			console.log(errorMsg, e);
-			reject(errorMsg);
-		});
-
-		req.write(data);
-		req.end();
-	});
-}
-
-export async function indexNow(
-	stateChangedRoutes: string[],
-): Promise<void> {
-	const secretKey: Awaited<string> = await _secretKeyManager();
-
-	/*Call Index now API */
-	const apiResponse: Awaited<number> = await _callAPI(
-		stateChangedRoutes,
-		secretKey,
-	);
-
-	let response: string;
-	switch (apiResponse) {
-		case 200:
-			response = "✅\tURLs submitted and key validated.";
-			break;
-		case 202:
-			response = "⚠️\tURLs submitted but key validation pending.";
-			break;
-		case 400:
-			response = "👎🏻\tBad request - Invalid format.";
-			break;
-		case 403:
-			response =
-				"🔐\tForbidden - Key not valid (key not found, file found but key not in the file).";
-			break;
-		case 422:
-			response =
-				"⛔\tUnprocessable Entity - URLs which don’t belong to your host or the key is not matching the schema in the protocol.";
-			break;
-		case 429:
-			response = "🚨\tToo Many Requests.";
-			break;
-		default:
-			response = "😕\tUnexpected response.";
-			break;
+			return response.status; // Return the HTTP status code
+		} catch (error) {
+			const errorMsg = "Error while making API request";
+			console.error(errorMsg, error);
+			throw new Error(errorMsg);
+		}
 	}
-	console.log("\nIndexNow response: " + response);
 }

@@ -1,78 +1,103 @@
 #!/usr/bin/env node
 
-import yargs from "yargs";
-import { hawk, hawkStrategy } from "../hawk";
-import { makeSitemap } from "../lib/utils";
+import { Command } from "commander";
+import { Hawk } from "../lib/core";
+import { SuppotredStrategies } from "../lib/types";
 
-async function _genMapHandler(argv: any): Promise<void> {
-	if (argv.commit) {
-		/* Make sitemap and update to Google search console */
-		await hawkStrategy.gWebmaster2(
-			argv.prettify,
-			argv.include,
-			argv.exclude,
+const program = new Command();
+const hawkInstance = new Hawk();
+
+const strategyOptions =
+	"Strategy to use \n1.Index-Now\n2.G-Webmaster\n3.G-Webmaster2\n4.G-Index";
+
+async function handleGenMap(options: Record<string, any>) {
+	console.log(
+		"🕸️  Making sitemap",
+		options.commit ? "and uploading..." : "",
+	);
+
+	await hawkInstance.utils.makeSitemap(
+		options.include,
+		options.exclude,
+		options.prettify,
+		options.commit,
+	);
+}
+
+async function handleMain(options: Record<string, any>) {
+	if (
+		!Boolean(options.strategy) ||
+		!["1", "2", "3", "4"].includes(options.strategy)
+	) {
+		console.log(
+			"⭕ Must Choose any one number from below\n",
+			strategyOptions,
 		);
-	} else {
-		/* Only making site map */
-		await makeSitemap(argv.prettify, argv.include, argv.exclude);
+		process.exit(1);
 	}
+
+	const strategyMap: Record<string, SuppotredStrategies> = {
+		"1": "IndexNow",
+		"2": "GWebmaster",
+		"3": "GWebmaster2",
+		"4": "GIndex",
+	};
+
+	await hawkInstance.hawk(
+		strategyMap[options.strategy],
+		options.include,
+		options.exclude,
+		options.prettify,
+	);
+
+	console.log(
+		`🚀  Hawk employing "${strategyMap[options.strategy]}" strategy..`,
+	);
 }
 
-async function _mainHandler(argv: any): Promise<void> {
-	await hawk(argv.strategy, argv.include, argv.exclude, argv.prettify);
-}
-
-async function main(): Promise<void> {
-	// Configure yargs options
-	const argv = await yargs
-		.scriptName("hawk")
-		.usage("$0 [options] [args]")
-		.option("strategy", {
-			alias: "s",
-			describe: "Strategy to use",
-			choices: ["GIndex", "IndexNow", "GWebmaster", "GWebmaster2"],
-			default: "IndexNow",
-		})
-		.option("include", {
-			alias: "i",
-			describe: "Include pattern",
-			type: "array",
-			default: [],
-		})
-		.option("exclude", {
-			alias: "e",
-			describe: "Exclude pattern",
-			type: "array",
-			default: [],
-		})
-		.option("prettify", {
-			alias: "p",
-			describe: "Prettify sitemap.xml output",
-			type: "boolean",
-			default: false,
-		})
-		.command(
-			"genmap [option]",
-			"Generate sitemap.xml & upload to Google search console.",
-			(yargs) => {
-				yargs.option("commit", {
-					alias: "c",
-					describe: "Upload to Google search console",
-					type: "boolean",
-					default: false,
-				});
-			},
+async function main() {
+	program
+		.name("hawk")
+		.description(
+			"CLI for generating sitemaps and feeding to search engines",
 		)
-		.command("secret", "Set secret credentials")
-		.strict()
-		.help().argv;
+		.version("1.5.0");
 
-	const isGenMap: boolean = argv._.includes("genmap");
-	if (isGenMap) {
-		_genMapHandler(argv);
-	} else {
-		_mainHandler(argv);
-	}
+	// Global options
+	program
+		.option("-s, --strategy <number>", strategyOptions)
+		.option(
+			"-i, --include <patterns...>",
+			"Include patterns",
+			hawkInstance.configurations.lookupPatterns,
+		)
+		.option(
+			"-e, --exclude <patterns...>",
+			"Exclude patterns",
+			hawkInstance.configurations.ignorePattern,
+		)
+		.option("-p, --prettify", "Prettify sitemap.xml output", false);
+
+	// Genmap command
+	program
+		.command("genmap")
+		.option("-c, --commit", "Upload to FTP Server", false)
+		.description(
+			"Generate sitemap.xml and optionally upload to FTP server",
+		)
+		.action(async (options) => {
+			await handleGenMap({
+				...program.opts(),
+				...options,
+			});
+		});
+
+	// Default command (no subcommand provided)
+	program.action(async () => {
+		await handleMain(program.opts());
+	});
+
+	await program.parseAsync(process.argv);
 }
 
 main().catch((error) => {
