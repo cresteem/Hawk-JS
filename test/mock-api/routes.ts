@@ -130,4 +130,7 @@ router.post("/indexnow", function (req: any, res: any, _next: () => void) {
 	}
 });
 
+router.get("/", function (_req: any, res: any, _next: () => void) {
+	res.status(200).send("Hello World");
+});
 export default router;

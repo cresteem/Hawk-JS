@@ -1,5 +1,6 @@
 import { chdir } from "node:process";
 import { Hawk } from "../lib/core";
+import ftpValidator from "./utils/ftp-validator";
 import strategyValidator from "./utils/strategy-validator";
 import validateRoutes from "./utils/validate-routes";
 import validateSitemap from "./utils/validate-sitemap";
@@ -9,6 +10,9 @@ const testSampleRootPath = "./test/test-sample";
 
 beforeAll(() => {
 	process.env.isdev = "true"; //for strategyValidator
+
+	//delete indexnow key
+	hawkInstance.utils.lastStateWriter({ secretKey: "" }); // for ftpValidator
 });
 
 beforeEach(() => {
@@ -30,4 +34,8 @@ test("Routes validation", () => {
 
 test("Strategy validation", async () => {
 	expect(await strategyValidator(hawkInstance)).toBe(true);
+});
+
+test("FTP validation", async () => {
+	expect(await ftpValidator(hawkInstance)).toBe(true);
 });

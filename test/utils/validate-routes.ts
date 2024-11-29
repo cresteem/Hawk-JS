@@ -11,7 +11,7 @@ export default function validateRoutes(hawkInstance: Hawk): boolean {
 
 	//change mod time of routes
 	const simulatedLastSubmisssionTime = Date.now();
-	const newRouteModTime = new Date(simulatedLastSubmisssionTime + 10); //simulate as 10ms latest
+	const newRouteModTime = new Date(simulatedLastSubmisssionTime + 600000); //simulate as 10ms latest
 
 	//pick some random number of routes and update
 	const simulated_updatedRoutes = availableRoutes
