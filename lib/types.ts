@@ -81,3 +81,15 @@ export interface SecretObjectType {
 	user: string;
 	pass: string;
 }
+
+export interface IndexNowPayload {
+	host: string;
+	key: string;
+	keyLocation: string;
+	urlList: string[];
+}
+
+export interface GoogleJobMediaIndexingPayload {
+	url: string;
+	type: "URL_UPDATED";
+}

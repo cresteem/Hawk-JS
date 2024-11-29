@@ -4,6 +4,7 @@ import { type Hawk } from "./core";
 import {
 	GoogleIndexResponseOptions,
 	GoogleIndexStatusCode,
+	GoogleJobMediaIndexingPayload,
 	LastStateType,
 	RanStatusFileStructure,
 	SitemapMeta,
@@ -39,22 +40,23 @@ export default class GoogleIndexing {
 		updatedRoute: string,
 	): Promise<GoogleIndexResponseOptions> {
 		try {
-			const postData = {
+			const postData: GoogleJobMediaIndexingPayload = {
 				url: updatedRoute,
 				type: "URL_UPDATED",
 			};
 
-			const response = await fetch(
-				"https://indexing.googleapis.com/v3/urlNotifications:publish",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${accessToken}`,
-					},
-					body: JSON.stringify(postData),
+			const endpoint = process.env.isdev
+				? "http://localhost:8080/google-jobmedia-indexing"
+				: "https://indexing.googleapis.com/v3/urlNotifications:publish";
+
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${accessToken}`,
 				},
-			);
+				body: JSON.stringify(postData),
+			});
 
 			const responseBody = await response.json();
 
@@ -201,7 +203,13 @@ export default class GoogleIndexing {
 						siteUrl,
 					)}/sitemaps/${encodeURIComponent(sitemapURL)}`;
 
-					const response = await fetch(apiUrl, {
+					const endpoint = process.env.isdev
+						? `http://localhost:8080/webmaster/${encodeURIComponent(
+								siteUrl,
+						  )}/sitemaps/${encodeURIComponent(sitemapURL)}`
+						: apiUrl;
+
+					const response = await fetch(endpoint, {
 						method: "PUT",
 						headers: {
 							Authorization: `Bearer ${accessToken}`,

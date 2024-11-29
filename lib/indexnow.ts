@@ -5,6 +5,7 @@ import { type Hawk } from "./core";
 import {
 	constants,
 	ftpCredentialOptions,
+	IndexNowPayload,
 	RanStatusFileStructure,
 } from "./types";
 
@@ -138,20 +139,23 @@ export default class IndexNow {
 		updatedRoutes: string[],
 		secretkey: string,
 	): Promise<number> {
-		const data = JSON.stringify({
+		const data: IndexNowPayload = {
 			host: this.#domainName,
 			key: secretkey,
 			keyLocation: `https://${this.#domainName}/${secretkey}.txt`,
 			urlList: updatedRoutes,
-		});
+		};
 
+		const endpoint = process.env.isdev
+			? "http://localhost:8080/indexnow"
+			: "https://api.indexnow.org/IndexNow";
 		try {
-			const response = await fetch("https://api.indexnow.org/IndexNow", {
+			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json; charset=utf-8",
 				},
-				body: data,
+				body: JSON.stringify(data),
 			});
 
 			return response.status; // Return the HTTP status code
