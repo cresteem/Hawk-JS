@@ -32,5 +32,9 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Confidential step
+        run: |
+          echo "${{ secrets.GSERV }}" > test/test-sample/gserv.json
+
       - name: Run tests
         run: yarn ci-test
