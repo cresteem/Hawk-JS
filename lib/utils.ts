@@ -47,7 +47,7 @@ export default class Utils {
 	): RouteMeta[] {
 		const routesMeta: RouteMeta[] = [] as RouteMeta[];
 
-		_lookupFiles(lookupPatterns, ignorePattern).forEach(
+		this.lookupFiles(lookupPatterns, ignorePattern).forEach(
 			(filePath: string): void => {
 				let relativePath: string = relative(process.cwd(), filePath);
 
@@ -398,15 +398,15 @@ export default class Utils {
 		}
 		return dataObject[keyName];
 	}
-}
 
-function _lookupFiles(
-	lookupPatterns: string[],
-	ignorePatterns: string[],
-): string[] {
-	const webPageFilePaths: string[] = globSync(lookupPatterns, {
-		ignore: [...ignorePatterns, "node_modules/**"],
-	});
+	lookupFiles(
+		lookupPatterns: string[],
+		ignorePatterns: string[],
+	): string[] {
+		const webPageFilePaths: string[] = globSync(lookupPatterns, {
+			ignore: [...ignorePatterns, "node_modules/**"],
+		});
 
-	return webPageFilePaths;
+		return webPageFilePaths;
+	}
 }
