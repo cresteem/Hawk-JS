@@ -1,6 +1,7 @@
 import { Client as FTP } from "basic-ftp";
 import { randomBytes } from "node:crypto";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { relative } from "node:path";
 import { type Hawk } from "./core";
 import {
 	constants,
@@ -20,7 +21,7 @@ export default class IndexNow {
 		this.#domainName = domainName;
 	}
 
-	async trigger(stateChangedRoutes: string[]): Promise<void> {
+	async trigger(stateChangedRoutes: string[]): Promise<boolean> {
 		const secretKey: Awaited<string> = await this.#_secretKeyManager();
 
 		/*Call Index now API */
@@ -56,6 +57,7 @@ export default class IndexNow {
 				break;
 		}
 		console.log("\nIndexNow response: " + response);
+		return apiResponse === 200;
 	}
 
 	#_makeSecretKey(): string {
@@ -93,7 +95,10 @@ export default class IndexNow {
 			writeFileSync(tempkeyfile, secretKey);
 
 			/*set secretkey as file name and store in root */
-			const keyDestination: string = `/${secretKey}.txt`;
+			const keyDestination: string = relative(
+				process.cwd(),
+				`${secretKey}.txt`,
+			);
 
 			/* Upload to ftp server */
 			const ftp: FTP = new FTP();

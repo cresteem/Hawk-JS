@@ -1,12 +1,7 @@
 import { utimesSync } from "node:fs";
 import { type Hawk } from "../../lib/core";
 
-export default function validateRoutes(
-	testSampleRoot: string,
-	hawkInstance: Hawk,
-) {
-	process.chdir(testSampleRoot);
-
+export default function validateRoutes(hawkInstance: Hawk): boolean {
 	const { lookupPatterns, ignorePattern } = hawkInstance.configurations;
 
 	const availableRoutes = hawkInstance.utils.lookupFiles(

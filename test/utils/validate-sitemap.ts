@@ -6,16 +6,13 @@ import { validateXML } from "xsd-schema-validator";
 import { type Hawk } from "../../lib/core";
 
 export default async function validateSitemap(
-	testSampleRootPath: string,
 	hawkInstance: Hawk,
 ): Promise<boolean> {
-	process.chdir(testSampleRootPath);
-
 	const lookupPattern = ["**/*.html"];
 	const uploadToFTP = false;
-	const expectedSitemapOutputPath = "test-sitemap.xml";
+	const expectedSitemapOutputPath =
+		hawkInstance.configurations.sitemapPath;
 
-	hawkInstance.configurations.sitemapPath = expectedSitemapOutputPath;
 	await hawkInstance.utils.makeSitemap(
 		lookupPattern,
 		[],

@@ -8,7 +8,11 @@ const config: ConfigurationOptions = {
 	sitemapPath: "sitemap.xml",
 	robotPath: "robot.txt",
 	serviceAccountFile: "gserv.json",
-	ftpCredential: {} as any,
+	ftpCredential: {
+		hostname: "localhost",
+		username: "one",
+		password: "1234",
+	},
 };
 
 export default config;

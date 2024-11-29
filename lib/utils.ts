@@ -113,13 +113,14 @@ export default class Utils {
 			});
 
 			/* Making path relative from root for server */
-			const remotePath: string = "/" + sitemapPath;
+			const remotePath: string = relative(process.cwd(), sitemapPath);
 
 			await ftp.uploadFrom(sitemapPath, remotePath);
 
 			ftp.close();
 			return true;
 		} catch (err) {
+			console.log(err);
 			return false;
 		}
 	}

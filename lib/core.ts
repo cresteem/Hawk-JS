@@ -24,13 +24,13 @@ export class Hawk {
 		lookupPatterns: string[] = this.configurations.lookupPatterns,
 		ignorePatterns: string[] = this.configurations.ignorePattern,
 		prettify: boolean = false,
-	): Promise<void> {
+	): Promise<boolean> {
 		const strategyLowercase: string = strategy.toLowerCase();
 
 		try {
 			if (["gwebmaster", "gwebmaster2"].includes(strategyLowercase)) {
 				/* For all types of website*/
-				await this.#_googleWebmaster(
+				return await this.#_googleWebmaster(
 					lookupPatterns,
 					ignorePatterns,
 					prettify,
@@ -43,7 +43,7 @@ export class Hawk {
 				);
 
 				/* For Bing, Yahoo, Yandex, Yep, etc */
-				await new IndexNow(this).trigger(stateChangedRoutes);
+				return await new IndexNow(this).trigger(stateChangedRoutes);
 			} else if (strategyLowercase === "gindex") {
 				const stateChangedRoutes: string[] = this.#_getstateChangedRoutes(
 					lookupPatterns,
@@ -51,8 +51,10 @@ export class Hawk {
 				);
 
 				/* For Google - Web page which has JobPosting or Livestream Broadcasting content. */
-				await this.#googleIndex.jobMediaIndex(stateChangedRoutes);
+				return await this.#googleIndex.jobMediaIndex(stateChangedRoutes);
 			}
+
+			return false;
 		} catch (err) {
 			console.log("Program stopping.. reason below ⬇️", "\n", err);
 			process.exit(1);
@@ -64,10 +66,10 @@ export class Hawk {
 		ignorePattern: string[] = [],
 		prettify: boolean = false,
 		checkFeedback: boolean = false,
-	): Promise<void> {
+	): Promise<boolean> {
 		await this.#_makeSitemapRobot(lookupPatterns, ignorePattern, prettify);
 
-		await this.#googleIndex.webmasterIndex(); //submit sitmap.xml
+		const succces = await this.#googleIndex.webmasterIndex(); //submit sitmap.xml
 
 		if (checkFeedback) {
 			/* check status */
@@ -75,6 +77,8 @@ export class Hawk {
 				await this.#googleIndex.webmasterFeedback();
 			console.log(statusMeta);
 		}
+
+		return succces;
 	}
 
 	async #_makeSitemapRobot(

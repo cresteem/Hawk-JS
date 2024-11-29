@@ -70,7 +70,7 @@ export default class GoogleIndexing {
 		}
 	}
 
-	async jobMediaIndex(stateChangedRoutes: string[]) {
+	async jobMediaIndex(stateChangedRoutes: string[]): Promise<boolean> {
 		const callPromises: Promise<GoogleIndexResponseOptions>[] = [];
 
 		const jwtClient = new google.auth.JWT({
@@ -78,100 +78,103 @@ export default class GoogleIndexing {
 			scopes: ["https://www.googleapis.com/auth/indexing"],
 		});
 
-		jwtClient.authorize(async (err, tokens): Promise<void> => {
-			if (err) {
-				console.log(
-					"Error while authorizing for indexing API scope " + err,
-				);
-				process.exit(1);
-			}
-
-			const accessToken: string = tokens?.access_token || "";
-
-			stateChangedRoutes.forEach((updatedRoute) => {
-				callPromises.push(
-					this.#_callIndexingAPI(accessToken, updatedRoute),
-				);
-			});
-
-			const apiResponses: GoogleIndexResponseOptions[] = await Promise.all(
-				callPromises,
-			);
-
-			/* Grouping api responses */
-			const statusGroups: Record<
-				GoogleIndexStatusCode,
-				GoogleIndexResponseOptions[]
-			> = {
-				204: [], //dummy
-				400: [],
-				403: [],
-				429: [],
-				200: [],
-			};
-
-			apiResponses.forEach((response) => {
-				if ([400, 403, 429, 200].includes(response.statusCode)) {
-					statusGroups[response.statusCode].push(response);
+		return new Promise((resolve, _reject) => {
+			jwtClient.authorize(async (err, tokens): Promise<void> => {
+				if (err) {
+					console.log(
+						"Error while authorizing for indexing API scope " + err,
+					);
+					process.exit(1);
 				}
-			});
 
-			if (statusGroups[200].length > 0) {
-				console.log("\n✅ Successfully reported routes:");
+				const accessToken: string = tokens?.access_token || "";
 
-				console.log(
-					statusGroups[200].map((response) => response.url).join("\n"),
-				);
-			}
+				stateChangedRoutes.forEach((updatedRoute) => {
+					callPromises.push(
+						this.#_callIndexingAPI(accessToken, updatedRoute),
+					);
+				});
 
-			/* Error reports */
-			if (
-				statusGroups[400].length > 0 ||
-				statusGroups[403].length > 0 ||
-				statusGroups[429].length > 0
-			) {
-				const failedResponseCount =
-					stateChangedRoutes.length - statusGroups[200].length;
+				const apiResponses: GoogleIndexResponseOptions[] =
+					await Promise.all(callPromises);
 
-				console.log(
-					`\nGoogle response: ⚠️\t${failedResponseCount} of ${stateChangedRoutes.length} failed`,
-				);
+				/* Grouping api responses */
+				const statusGroups: Record<
+					GoogleIndexStatusCode,
+					GoogleIndexResponseOptions[]
+				> = {
+					204: [], //dummy
+					400: [],
+					403: [],
+					429: [],
+					200: [],
+				};
 
-				console.log("\n###Google Indexing error reports:⬇️");
-				if (statusGroups[400].length > 0) {
-					console.log("\n👎🏻 BAD_REQUEST");
-					console.log("Affected Routes:");
-					statusGroups[400].forEach((response) => {
+				apiResponses.forEach((response) => {
+					if ([400, 403, 429, 200].includes(response.statusCode)) {
+						statusGroups[response.statusCode].push(response);
+					}
+				});
+
+				if (statusGroups[200].length > 0) {
+					console.log("\n✅ Successfully reported routes:");
+
+					console.log(
+						statusGroups[200].map((response) => response.url).join("\n"),
+					);
+				}
+
+				/* Error reports */
+				if (
+					statusGroups[400].length > 0 ||
+					statusGroups[403].length > 0 ||
+					statusGroups[429].length > 0
+				) {
+					const failedResponseCount =
+						stateChangedRoutes.length - statusGroups[200].length;
+
+					console.log(
+						`\nGoogle response: ⚠️\t${failedResponseCount} of ${stateChangedRoutes.length} failed`,
+					);
+
+					console.log("\n###Google Indexing error reports:⬇️");
+					if (statusGroups[400].length > 0) {
+						console.log("\n👎🏻 BAD_REQUEST");
+						console.log("Affected Routes:");
+						statusGroups[400].forEach((response) => {
+							console.log(
+								response.url,
+								"\t|\t",
+								"Reason: " + response.body.error.message,
+							);
+						});
+					}
+
+					if (statusGroups[403].length > 0) {
+						console.log("\n🚫 FORBIDDEN - Ownership verification failed");
+						console.log("Affected Routes:");
 						console.log(
-							response.url,
-							"\t|\t",
-							"Reason: " + response.body.error.message,
+							statusGroups[403].map((response) => response.url).join("\n"),
 						);
-					});
+					}
+
+					if (statusGroups[429].length > 0) {
+						console.log(
+							"\n🚨 TOO_MANY_REQUESTS - Your quota is exceeding for Indexing API calls",
+						);
+						console.log("Affected Routes:");
+						console.log(
+							statusGroups[429].map((response) => response.url).join("\n"),
+						);
+					}
 				}
 
-				if (statusGroups[403].length > 0) {
-					console.log("\n🚫 FORBIDDEN - Ownership verification failed");
-					console.log("Affected Routes:");
-					console.log(
-						statusGroups[403].map((response) => response.url).join("\n"),
-					);
-				}
-
-				if (statusGroups[429].length > 0) {
-					console.log(
-						"\n🚨 TOO_MANY_REQUESTS - Your quota is exceeding for Indexing API calls",
-					);
-					console.log("Affected Routes:");
-					console.log(
-						statusGroups[429].map((response) => response.url).join("\n"),
-					);
-				}
-			}
+				resolve(apiResponses.length === statusGroups[200].length);
+			});
 		});
 	}
 
-	webmasterIndex(): Promise<void> {
+	webmasterIndex(): Promise<boolean> {
 		const siteUrl: string = `sc-domain:${this.#domainName}`;
 		const sitemapURL: string = `https://${this.#domainName}/${
 			this.#sitemapPath
@@ -233,7 +236,7 @@ export default class GoogleIndexing {
 						submittedSitemap: sitemapAPIResponse.url,
 					});
 
-					resolve();
+					resolve(response.ok);
 				} catch (error) {
 					reject(`Request error: ${error}`);
 				}
