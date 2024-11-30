@@ -6,6 +6,13 @@
 
 <p id="intro">Hawk.js is an advanced, open-source sitemap generator and SEO automation tool designed to enhance your website's search engine visibility. It automates the creation of comprehensive sitemaps and simplifies their submission to major search engines such as Google, Bing, Yahoo, Yandex, and more. With support for multiple indexing strategies like IndexNow and Google Webmaster Tools, Hawk.js ensures your website is indexed accurately and quickly, driving better SEO performance.</p>
 
+### Supported Search Engines
+![Google](https://img.shields.io/badge/google-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Bing](https://img.shields.io/badge/Microsoft%20Bing-258FFA?style=for-the-badge&logo=Microsoft%20Bing&logoColor=white)
+![Yahoo!](https://img.shields.io/badge/Yahoo!-6001D2?style=for-the-badge&logo=Yahoo!&logoColor=white)
+![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-DE5833?style=for-the-badge&logo=DuckDuckGo&logoColor=white)
+
+and all **IndexNow** protocol implemented browsers.
 
 ### Supported Platforms
 
@@ -22,14 +29,14 @@
 <p>
 
 <span>
-  <a href="https://github.com/cresteem/Hawk-JS/commits/main">
-    <img src="https://img.shields.io/github/last-commit/cresteem/Hawk-JS?display_timestamp=committer&style=for-the-badge&label=Updated%20On" alt="GitHub last commit"/>
+  <a href="https://github.com/cresteem/Hawk.js/commits/main">
+    <img src="https://img.shields.io/github/last-commit/cresteem/Hawk.js?display_timestamp=committer&style=for-the-badge&label=Updated%20On" alt="GitHub last commit"/>
   </a>
 </span>
 
 <span>
   <a href="">
-    <img src="https://img.shields.io/github/commit-activity/m/cresteem/Hawk-JS?style=for-the-badge&label=Commit%20Activity" alt="GitHub commit activity"/>
+    <img src="https://img.shields.io/github/commit-activity/m/cresteem/Hawk.js?style=for-the-badge&label=Commit%20Activity" alt="GitHub commit activity"/>
   </a>
 </span>
 
@@ -38,8 +45,8 @@
 <p>
 
 <span>
-  <a href="https://github.com/cresteem/Hawk-JS/actions/workflows/test.yaml">
-    <img src="https://img.shields.io/github/actions/workflow/status/cresteem/Hawk-JS/test.yaml?style=for-the-badge&label=Test%20Status" alt="GitHub Actions Test Status"/>
+  <a href="https://github.com/cresteem/Hawk.js/actions/workflows/test.yaml">
+    <img src="https://img.shields.io/github/actions/workflow/status/cresteem/Hawk.js/test.yaml?style=for-the-badge&label=Test%20Status" alt="GitHub Actions Test Status"/>
   </a>
 </span>
 
@@ -51,13 +58,13 @@
 
 <span>
   <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/cresteem/Hawk-JS?style=for-the-badge&label=License" alt="GitHub License"/>
+    <img src="https://img.shields.io/github/license/cresteem/Hawk.js?style=for-the-badge&label=License" alt="GitHub License"/>
   </a>
 </span>
 
 <span>
-  <a href="https://github.com/cresteem/Hawk-JS/releases">
-    <img src="https://img.shields.io/github/v/release/cresteem/Hawk-JS?sort=date&display_name=tag&style=for-the-badge&label=Latest%20Version" alt="GitHub Release"/>
+  <a href="https://github.com/cresteem/Hawk.js/releases">
+    <img src="https://img.shields.io/github/v/release/cresteem/Hawk.js?sort=date&display_name=tag&style=for-the-badge&label=Latest%20Version" alt="GitHub Release"/>
   </a>
 </span>
 
@@ -66,8 +73,8 @@
 <p>
 
 <span>
-  <a href="https://www.codefactor.io/repository/github/cresteem/Hawk-JS/issues/main">
-    <img src="https://img.shields.io/codefactor/grade/github/cresteem/Hawk-JS?style=for-the-badge&label=Code%20Quality%20Grade" alt="CodeFactor Grade"/>
+  <a href="https://www.codefactor.io/repository/github/cresteem/Hawk.js/issues/main">
+    <img src="https://img.shields.io/codefactor/grade/github/cresteem/Hawk.js?style=for-the-badge&label=Code%20Quality%20Grade" alt="CodeFactor Grade"/>
   </a>
 </span>
 
@@ -85,7 +92,7 @@
 
 <span>
   <a href="">
-    <img src="https://img.shields.io/github/stars/cresteem/Hawk-JS?style=for-the-badge&label=Stars" alt="GitHub Repo stars"/>
+    <img src="https://img.shields.io/github/stars/cresteem/Hawk.js?style=for-the-badge&label=Stars" alt="GitHub Repo stars"/>
   </a>
 </span>
 
@@ -184,7 +191,7 @@ Thank you for being part of this journey. Your support means the world to us. ðŸ
 ## Installation - Step-by-Step Guide ðŸªœ
 Follow Below link:
 
-[Getting Started with Hawk.js](https://hawkjs.cresteem.com/getting-started-with-hawk-js)
+[Getting Started with Hawk.js](https://hawkjs.cresteem.com)
 
 
 ## Usage
