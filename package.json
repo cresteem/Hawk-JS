@@ -1,7 +1,7 @@
 {
 	"name": "@cresteem/hawk-js",
 	"displayName": "Hawk.js",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"description": "Hawk.js is an advanced, open-source sitemap generator and SEO automation tool designed to enhance your website's search engine visibility. It automates the creation of comprehensive sitemaps and simplifies their submission to major search engines such as Google, Bing, Yahoo, Yandex, and more. With support for multiple indexing strategies like IndexNow and Google Webmaster Tools, Hawk.js ensures your website is indexed accurately and quickly, driving better SEO performance.",
 	"main": "./dist/lib/core.js",
 	"exports": {

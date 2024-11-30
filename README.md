@@ -12,7 +12,7 @@
 ![Yahoo!](https://img.shields.io/badge/Yahoo!-6001D2?style=for-the-badge&logo=Yahoo!&logoColor=white)
 ![DuckDuckGo](https://img.shields.io/badge/DuckDuckGo-DE5833?style=for-the-badge&logo=DuckDuckGo&logoColor=white)
 
-and all **IndexNow** protocol implemented browsers.
+and all search engines supporting **IndexNow** protocol.
 
 ### Supported Platforms
 
