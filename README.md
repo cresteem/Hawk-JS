@@ -1,14 +1,21 @@
 <div align="center">
 
-# Hawk.js - Advanced Sitemap Generator and Deployer for SEO
+![HAWK.js logo](./logo/logo.webp)
 
-<p id="intro">Hawk.js is an advanced sitemap generator and deployer designed to enhance your website's search engine optimization (SEO). It automates the creation of comprehensive sitemaps and simplifies submission to major search engines like Google, Bing, Yahoo, Yandex, and more, ensuring your site is indexed accurately and quickly.</p>
+# Hawk.js - Advanced Sitemap Generator & SEO Automation Tool
+
+<p id="intro">Hawk.js is an advanced, open-source sitemap generator and SEO automation tool designed to enhance your website's search engine visibility. It automates the creation of comprehensive sitemaps and simplifies their submission to major search engines such as Google, Bing, Yahoo, Yandex, and more. With support for multiple indexing strategies like IndexNow and Google Webmaster Tools, Hawk.js ensures your website is indexed accurately and quickly, driving better SEO performance.</p>
+
 
 ### Supported Platforms
 
 [![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)]()
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)]()
 [![Node JS](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)]()
+
+### Continuous integration Support
+![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
+![GitLab CI](https://img.shields.io/badge/gitlab%20ci-%23181717.svg?style=for-the-badge&logo=gitlab&logoColor=orange)
 
 ---
 
@@ -117,22 +124,46 @@
 - [Credits](#credits-)
 
 ## Features and Benefits ✨
+
 * **Automation**: Streamlines the generation and submission of sitemaps, saving time and reducing manual effort.
-* **SEO Optimization**: Ensures your website is indexed by top search engines, improving visibility and ranking.
+* **SEO Optimization**: Ensures your website is indexed by all search engines possible, improving visibility and ranking.
 * **Customization**: Offers advanced configuration options to tailor sitemap generation to your specific needs.
 * **Real-Time Updates**: Keeps your sitemaps up-to-date with the latest changes to your site.
 * **Multi-Engine Support**: Automatically submits your sitemaps to a variety of search engines, expanding your reach.
+  * Supports multiple strategies such as **IndexNow**, **Google Webmaster Tools**, **Google Indexing**, and many others, ensuring comprehensive coverage for all major search engines across the internet.
 * **CI/CD Integration**: Can be easily integrated into Continuous Integration (CI) pipelines like GitHub Actions and GitLab CI, automating sitemap management within your deployment workflow.
 * **Open-Source**: Licensed under Apache 2.0, allowing free use for both personal and commercial projects.
 
+### New Features in Version 1.5.0:
+* **Logo in VSCode Configuration File**: Adds the official logo to the VSCode configuration for better project branding.
+* **TypeScript Support for Custom Config Files**: The `init` command now supports creating custom configuration files with TypeScript support.
+* **Removal of Secret Loader from CLI**: The secret loader has been removed from the CLI to improve security and simplify functionality.
+* **Default Lookup and Ignore Patterns**: The default lookup and ignore patterns are now loaded directly from the configuration for both API and CLI by default.
+* **`node_modules` Folder Ignored Indefinitely**: The `node_modules` folder is now ignored indefinitely in all operations, reducing unnecessary processing.
+* **Switch from `http.request` to `fetch()`**: The usage of `http.request` has been replaced with the `fetch()` API to simplify the code and optimize for better performance and readability.
+* **Code Refactoring and Optimization**: Significant code improvements and optimizations have been made for better performance and maintainability.
+* **Configurable FTP Credentials**: FTP credentials are now configurable, with environment variable fallback if not provided.
+* **Updated and Optimized Test Cases**: Test cases have been updated and optimized for better coverage and accuracy.
+* **Removal of Unwanted Dependencies**: Unnecessary dependencies have been removed to streamline the project and improve performance.
+* **Enhanced CLI Functionality**: Various enhancements to the CLI for improved user interaction and functionality.
+* **Updated All Dependencies**: All dependencies have been updated to their latest stable versions to ensure better security and performance.
+* **Official Logo Added**: The official Hawk.js logo has been integrated into the project for better recognition and branding.
+* **Configuration Style Changed to JavaScript**: The configuration style has been changed from JSON to JavaScript for greater flexibility.
+
+### Removed Features:
+* **Secret Loader**: The secret loader functionality has been completely removed from the CLI, simplifying the interface and improving security.
+
 ## Use Cases ✅
 
-* Web developers looking to automate sitemap generation for their projects.
-* SEO professionals aiming to improve a website's visibility on multiple search engines.
-* Digital marketers who need to ensure their content is always up-to-date in search engine indexes.
-* Large websites with frequent updates needing real-time sitemap generation.
-* E-commerce sites that require efficient management of large numbers of pages and products.
-* Blogs and content-heavy sites aiming for better search engine indexing.
+* **Web Developers**: Automate sitemap generation for projects, streamlining the SEO process and ensuring consistent updates across various search engines.
+* **SEO Professionals**: Improve website visibility by ensuring efficient and accurate indexing across multiple search engines, including Google, Bing, Yahoo, Yandex, and more.
+* **Digital Marketers**: Ensure that content is always up-to-date in search engine indexes by automating sitemap submissions through various strategies such as **IndexNow** and **Google Webmaster Tools**.
+* **Large Websites**: Manage frequent updates and real-time sitemap generation for large-scale websites, ensuring that changes are reflected immediately in search engines.
+* **E-commerce Sites**: Efficiently handle large numbers of pages and products, ensuring they are indexed and visible on all major search engines with minimal manual intervention.
+* **Blogs and Content-Heavy Sites**: Ensure better search engine indexing and visibility for content-rich sites that require frequent updates and real-time indexing.
+* **Sites Requiring Multiple Indexing Strategies**: Leverage various indexing strategies like **IndexNow**, **Google Indexing**, and **Google Webmaster Tools** for comprehensive search engine reach.
+* **Continuous Integration Users**: Integrate with CI/CD pipelines (e.g., GitHub Actions, GitLab CI) to automate sitemap management alongside deployment workflows.
+
 
 ---
 
@@ -158,7 +189,15 @@ Follow Below link:
 
 ## Usage
 
-Everything from top to bottom of Hawk.js available here - https://hawkjs.cresteem.com/
+Everything you need to know about using Hawk.js—whether it's setting up, configuring, integrating with CI/CD pipelines, or exploring advanced features—is available on the official website. Visit [hawkjs.cresteem.com](https://hawkjs.cresteem.com/) for:
+
+- **Getting Started**: Step-by-step guide to set up and configure Hawk.js for your project.
+- **CI/CD Integration**: Detailed instructions on how to integrate Hawk.js into your GitHub Actions, GitLab CI, or other CI/CD workflows.
+- **Advanced Features**: In-depth explanations of the features like **IndexNow**, **Google Webmaster Tools**, and **real-time sitemap updates**.
+- **Full Documentation**: Comprehensive reference documentation covering all commands, configuration options, and use cases.
+
+Visit [hawkjs.cresteem.com](https://hawkjs.cresteem.com/) for complete guidance and support.
+
 
 ## License ©️
 
@@ -251,23 +290,18 @@ Hawk.js is developed and maintained by [DARSAN](https://darsan.in/) at [CRESTEEM
 #### Topics
 
 <ul id="keywords">
-<li>seo automation</li>
+<li>SEO automation</li>
 <li>sitemap generator</li>
-<li>sitemap</li>
-<li>search engine optimization</li>
+<li>SEO tools</li>
 <li>web development</li>
 <li>site indexing</li>
 <li>open-source</li>
 <li>search engines</li>
-<li>google</li>
-<li>bing</li>
-<li>yahoo</li>
-<li>yandex</li>
-<li>indexnow</li>
+<li>Google SEO</li>
+<li>Bing SEO</li>
+<li>IndexNow</li>
 <li>real-time updates</li>
 <li>webmaster tools</li>
 <li>content management</li>
 <li>digital marketing</li>
-<li>cresteem</li>
-<li>Hawk.js</li>
 </ul>
