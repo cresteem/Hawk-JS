@@ -1,99 +1,94 @@
 {
-	"name": "@cresteem/hawk-js",
-	"displayName": "Hawk.js",
-	"version": "1.0.8",
-	"description": "Hawk.js is an advanced sitemap generator and deployer designed to enhance your website's search engine optimization (SEO). It automates the creation of comprehensive sitemaps and simplifies submission to major search engines like Google, Bing, Yahoo, Yandex, and more, ensuring your site is indexed accurately and quickly.",
-	"main": "./dist/lib/core.js",
-	"exports": {
-		".": {
-			"types": "./dist/types/lib/core.d.ts",
-			"import": "./dist/lib/core.js",
-			"require": "./dist/lib/core.js"
-		}
-	},
-	"files": [
-		"dist",
-		"logo/hawkjs-icon.svg"
-	],
-	"directories": {
-		"lib": "./dist/lib"
-	},
-	"preferGlobal": true,
-	"bin": {
-		"hawk": "./dist/bin/CLIDriver.js"
-	},
-	"repository": "https://github.com/cresteem/Hawk.js",
-	"bugs": {
-		"url": "https://github.com/cresteem/Hawk.js/issues"
-	},
-	"homepage": "https://hawkjs.cresteem.com",
-	"author": "DARSAN <darsan@cresteem.com>",
-	"maintainers": [
-		"CRESTEEM <connect@cresteem.com>",
-		"DARSAN <darsan@cresteem.com>"
-	],
-	"license": "Apache-2.0",
-	"private": false,
-	"scripts": {
-		"dev": "rimraf dist && tsc -p tscdev.json && ncp ./bin/userconfig-template.js ./dist/bin/userconfig-template.js",
-		"test": "jest",
-		"build": "cls && eslint && rimraf dist && tsc -p tsconfig.json && ncp ./bin/userconfig-template.js ./dist/bin/userconfig-template.js",
-		"watch": "tsc --watch",
-		"clean": "cls && rimraf dist",
-		"deploy": "yarn test && yarn build && yarn publish --access public && git push",
-		"start-mock-server": "npx ts-node test/mock-api/app.ts",
-		"ci-test": "start-server-and-test start-mock-server http://localhost:8080 test"
-	},
-	"keywords": [
-		"seo automation",
-		"sitemap generator",
-		"sitemap",
-		"search engine optimization",
-		"web development",
-		"site indexing",
-		"open-source",
-		"search engines",
-		"google",
-		"bing",
-		"yahoo",
-		"yandex",
-		"indexnow",
-		"real-time updates",
-		"webmaster tools",
-		"content management",
-		"digital marketing",
-		"cresteem",
-		"Hawk.js"
-	],
-	"dependencies": {
-		"basic-ftp": "5.0.5",
-		"glob": "11.0.0",
-		"googleapis": "144.0.0",
-		"jstoxml": "5.0.2",
-		"luxon": "3.5.0"
-	},
-	"devDependencies": {
-		"@babel/core": "7.26.0",
-		"@babel/preset-env": "7.26.0",
-		"@babel/preset-typescript": "7.26.0",
-		"@types/express": "^5.0.0",
-		"@types/jest": "29.5.14",
-		"@types/jstoxml": "2.0.4",
-		"@types/luxon": "3.4.2",
-		"@types/node": "^22.10.0",
-		"@typescript-eslint/eslint-plugin": "8.16.0",
-		"@typescript-eslint/parser": "8.16.0",
-		"babel-jest": "29.7.0",
-		"commander": "^12.1.0",
-		"eslint": "^9.15.0",
-		"express": "^4.21.1",
-		"fast-xml-parser": "^4.5.0",
-		"jest": "29.7.0",
-		"ncp": "^2.0.0",
-		"rimraf": "6.0.1",
-		"start-server-and-test": "^2.0.8",
-		"ts-node": "10.9.2",
-		"typescript": "5.7.2",
-		"xsd-schema-validator": "^0.10.0"
-	}
+  "name": "@cresteem/hawk-js",
+  "displayName": "Hawk.js",
+  "version": "1.0.8",
+  "description": "Hawk.js is an advanced, open-source sitemap generator and SEO automation tool designed to enhance your website's search engine visibility. It automates the creation of comprehensive sitemaps and simplifies their submission to major search engines such as Google, Bing, Yahoo, Yandex, and more. With support for multiple indexing strategies like IndexNow and Google Webmaster Tools, Hawk.js ensures your website is indexed accurately and quickly, driving better SEO performance.",
+  "main": "./dist/lib/core.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/lib/core.d.ts",
+      "import": "./dist/lib/core.js",
+      "require": "./dist/lib/core.js"
+    }
+  },
+  "files": [
+    "dist",
+    "logo/hawkjs-icon.svg"
+  ],
+  "directories": {
+    "lib": "./dist/lib"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "hawk": "./dist/bin/CLIDriver.js"
+  },
+  "repository": "https://github.com/cresteem/Hawk.js",
+  "bugs": {
+    "url": "https://github.com/cresteem/Hawk.js/issues"
+  },
+  "homepage": "https://hawkjs.cresteem.com",
+  "author": "DARSAN <darsan@cresteem.com>",
+  "maintainers": [
+    "CRESTEEM <connect@cresteem.com>",
+    "DARSAN <darsan@cresteem.com>"
+  ],
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "dev": "rimraf dist && tsc -p tscdev.json && ncp ./bin/userconfig-template.js ./dist/bin/userconfig-template.js",
+    "test": "jest",
+    "build": "cls && eslint && rimraf dist && tsc -p tsconfig.json && ncp ./bin/userconfig-template.js ./dist/bin/userconfig-template.js",
+    "watch": "tsc --watch",
+    "clean": "cls && rimraf dist",
+    "deploy": "yarn test && yarn build && yarn publish --access public && git push",
+    "start-mock-server": "npx ts-node test/mock-api/app.ts",
+    "ci-test": "start-server-and-test start-mock-server http://localhost:8080 test"
+  },
+  "keywords": [
+    "seo automation",
+    "sitemap generator",
+    "seo tools",
+    "web development",
+    "site indexing",
+    "open-source",
+    "search engines",
+    "google seo",
+    "bing seo",
+    "indexnow",
+    "real-time updates",
+    "webmaster tools",
+    "content management",
+    "digital marketing"
+  ],
+  "dependencies": {
+    "basic-ftp": "5.0.5",
+    "glob": "11.0.0",
+    "googleapis": "144.0.0",
+    "jstoxml": "5.0.2",
+    "luxon": "3.5.0"
+  },
+  "devDependencies": {
+    "@babel/core": "7.26.0",
+    "@babel/preset-env": "7.26.0",
+    "@babel/preset-typescript": "7.26.0",
+    "@types/express": "^5.0.0",
+    "@types/jest": "29.5.14",
+    "@types/jstoxml": "2.0.4",
+    "@types/luxon": "3.4.2",
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "8.16.0",
+    "@typescript-eslint/parser": "8.16.0",
+    "babel-jest": "29.7.0",
+    "commander": "^12.1.0",
+    "eslint": "^9.15.0",
+    "express": "^4.21.1",
+    "fast-xml-parser": "^4.5.0",
+    "jest": "29.7.0",
+    "ncp": "^2.0.0",
+    "rimraf": "6.0.1",
+    "start-server-and-test": "^2.0.8",
+    "ts-node": "10.9.2",
+    "typescript": "5.7.2",
+    "xsd-schema-validator": "^0.10.0"
+  }
 }
